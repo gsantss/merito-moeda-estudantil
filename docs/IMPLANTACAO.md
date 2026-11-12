@@ -9,7 +9,7 @@
 | Documentação interativa da API | Render | https://merito-moeda-estudantil-api.onrender.com/docs |
 | Banco de dados | Render, PostgreSQL 16 gratuito | sem acesso externo (só a API acessa) |
 
-> Os endereços dependem dos nomes disponíveis no momento da criação dos projetos. Se o Render ou a Vercel atribuírem outro endereço, siga o passo 4 da seção "Como publicar".
+> **Publicação de 11/11/2026:** o Render e a Vercel atribuíram exatamente esses endereços, e o fluxo pela Vercel foi conferido: páginas, proxy `/api/*`, sessão e cabeçalhos de segurança. O banco gratuito `merito-db` fica disponível até **11/12/2026**. Em uma nova publicação, os endereços dependem dos nomes disponíveis no momento; se mudarem, siga o passo 4 da seção "Como publicar".
 
 ## 1. Diagrama de implantação
 

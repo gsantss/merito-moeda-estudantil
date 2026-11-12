@@ -10,6 +10,8 @@
 | API (Render) | https://merito-moeda-estudantil-api.onrender.com/api/saude |
 | Documentação da API | https://merito-moeda-estudantil-api.onrender.com/docs |
 
+Publicada em 11/11/2026. O banco PostgreSQL gratuito do Render fica disponível até **11/12/2026**.
+
 Contas de demonstração na nuvem: `professor@demo.local`, `aluno.demo` e `empresa.demo`. A senha é gerada pelo Render (variável `DEMO_SENHA` do serviço) e entregue a quem for avaliar; ela **não** é a senha local. No plano gratuito, o primeiro acesso depois de um período parado leva cerca de 1 minuto.
 
 ## LAB04S02 — Implantação (item 4.5 do enunciado)
