@@ -1,3 +1,10 @@
+import os
+
+# Os testes nunca usam o banco de desenvolvimento nem disparam as tarefas automáticas:
+# a aplicação sobe com um SQLite em memória descartável e cada teste recebe um banco próprio.
+os.environ['DATABASE_URL'] = 'sqlite://'
+os.environ['TAREFAS_AUTOMATICAS'] = '0'
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
