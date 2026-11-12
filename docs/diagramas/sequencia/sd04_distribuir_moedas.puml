@@ -1,0 +1,49 @@
+@startuml sd04_distribuir_moedas
+!include _estilo.iuml
+title SD04 — Distribuir moedas (UC04 + UC10, UC12, UC13 · HU06, HU07)
+
+actor Professor
+boundary "Painel do professor\n(View · sprint03.js)" as UI
+control "alunos\n(app/routers/alunos.py)" as CA
+participant "alunos\n(app/repositories/alunos.py)" as RA
+control "financeiro\n(app/routers/financeiro.py)" as CF
+participant "segurança\n(app/security.py)" as SEG
+participant "financeiro\n(app/services/financeiro.py)" as SF
+database "Banco de dados" as BD
+
+Professor -> UI : abre "Reconhecer mérito"
+UI -> CA : GET /api/alunos
+CA -> SEG : usuario_atual(request, db)
+CA -> RA : por_instituicao(db, instituicao_id)
+CA --> UI : alunos da instituição do professor
+Professor -> UI : escolhe aluno, quantidade e motivo
+UI -> CF : POST /api/distribuicoes (JSON + X-CSRF-Token)
+CF -> SEG : exigir_csrf(request)
+CF -> SEG : usuario_atual(request, db)
+CF -> SEG : exigir_perfil(usuario, 'professor')
+CF -> SF : distribuir(db, professor_id, aluno_id, quantidade, motivo)
+alt motivo vazio ou quantidade < 1 (422) · professor ou aluno inexistente (404) · aluno de outra instituição (403)
+  SF --> CF : HTTPException 422 / 404 / 403
+  CF --> UI : mensagem de erro
+else dados válidos
+  SF -> SF : carteira_usuario(db, professor_id) e (db, aluno_id)
+  SF -> SF : _debitar(db, origem, quantidade)
+  SF -> BD : UPDATE carteiras SET saldo = saldo - quantidade\nWHERE id = origem AND saldo >= quantidade
+  note right of BD : UC13 Validar saldo:\no próprio UPDATE só altera\na linha se houver saldo
+  alt nenhuma linha alterada (saldo insuficiente)
+    SF -> BD : ROLLBACK
+    SF --> CF : HTTPException 409
+    CF --> UI : 409 Saldo insuficiente
+  else débito realizado
+    SF -> SF : _creditar(db, destino, quantidade)
+    SF -> BD : UPDATE carteiras SET saldo = saldo + quantidade
+    SF -> BD : INSERT transacoes_moedas (distribuicao, motivo)\n[UC10 Registrar movimentação]
+    SF -> BD : INSERT notificacoes (pendente, e-mail do aluno)\n[UC12, enviada depois pelo SD10]
+    SF -> BD : COMMIT
+    SF --> CF : {transacao_id, saldo_atual}
+    CF --> UI : 201
+    UI --> Professor : "Moedas distribuídas", saldo e extrato atualizados
+  end
+end
+note over SF, BD : Débito, crédito, transação e notificação no mesmo commit:\nou tudo é gravado, ou nada é gravado.
+@enduml

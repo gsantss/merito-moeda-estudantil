@@ -1,0 +1,39 @@
+@startuml sd03_consultar_extrato
+!include _estilo.iuml
+title SD03 — Consultar saldo e extrato (UC03 · HU09, HU10)
+
+actor "Aluno ou professor" as U
+boundary "Painel\n(View · app.js, sprint03.js)" as UI
+control "consulta\n(app/routers/consulta.py)" as CC
+control "financeiro\n(app/routers/financeiro.py)" as CF
+participant "segurança\n(app/security.py)" as SEG
+participant "financeiro\n(app/services/financeiro.py)" as SF
+database "Banco de dados" as BD
+
+U -> UI : abre /painel
+UI -> CC : GET /api/carteira
+CC -> SEG : usuario_atual(request, db)
+CC --> UI : {saldo, perfil}
+UI -> CF : GET /api/extrato
+CF -> SEG : usuario_atual(request, db)
+alt perfil sem carteira (empresa parceira)
+  CF --> UI : 403 Perfil sem carteira
+else aluno ou professor
+  CF -> SF : extrato(db, usuario_id)
+  SF -> SF : carteira_usuario(db, usuario_id)
+  SF -> BD : SELECT transacoes_moedas\nWHERE origem ou destino = carteira\nORDER BY data_hora DESC
+  SF --> CF : {saldo, movimentacoes}
+  CF --> UI : 200
+  alt sem movimentações
+    UI --> U : saldo e "Nenhuma movimentação registrada"
+  else
+    UI --> U : saldo e lista (entrada ou saída, tipo, motivo, data)
+  end
+end
+opt perfil aluno
+  UI -> CF : GET /api/cupons
+  CF -> SEG : exigir_perfil(usuario, 'aluno')
+  CF -> SF : listar_cupons(db, aluno_id)
+  CF --> UI : cupons emitidos e situação (disponível ou utilizado)
+end
+@enduml

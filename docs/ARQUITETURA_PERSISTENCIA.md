@@ -1,4 +1,6 @@
-# Arquitetura MVC, dados e persistência — LAB03S03
+# Arquitetura MVC, dados e persistência — LAB03S03, atualizado no LAB04S01
+
+> **LAB04S01:** o crédito semestral e o envio da fila de e-mails passaram a ser tarefas automáticas do servidor (`app/tarefas.py`, `app/services/notificacoes.py`). As interações entre View, Controllers, Model e banco estão nos diagramas de sequência (`docs/diagramas/sequencia/`).
 
 ## Alinhamento com a Sprint 01
 
@@ -10,7 +12,7 @@ O Anexo C da S01 separa **View / Controller / Model / Infraestrutura**. A S02 im
 | Controller | `app/routers/` | Rotas HTTP, perfis, autenticação, DTO de entrada, respostas e status |
 | Model / Services | `app/models.py`, `app/schemas*.py`, `app/services/` | Entidades, validação de CPF/CNPJ, saldos, débitos, cupons e regras de negócio |
 | Acesso a dados | `app/repositories/`, `app/database.py`, SQLAlchemy ORM | Consultas com `select()`, operações condicionais com `update()`, commit/rollback |
-| Infraestrutura | SQLite, `scripts/creditar_semestre.py`, `scripts/processar_notificacoes.py` | Persistência ACID, agendamento externo e saída SMTP |
+| Infraestrutura | SQLite, `app/tarefas.py`, `app/services/notificacoes.py`, `scripts/` | Persistência ACID, crédito semestral e fila SMTP automáticos no servidor, scripts manuais |
 
 ## Modelo Entidade-Relacionamento
 
@@ -22,8 +24,8 @@ O relacionamento de usuário para perfil é 1:0..1 e determinado pelo campo `per
 
 1. A distribuição debita a carteira do professor com `UPDATE ... WHERE saldo >= valor`, credita a carteira do aluno e grava transação e e-mail pendente **no mesmo commit**. Se uma etapa falha, ocorre rollback.
 2. O resgate debita a carteira do aluno com a mesma guarda, grava transação, resgate, cupom aleatório único e dois registros de notificação em um commit.
-3. O crédito semestral grava vínculo de unicidade do professor com semestre; reexecutar o job não duplica o crédito. O semestre é informado pelo agendador externo (`AAAA/1` ou `AAAA/2`), pois a data institucional não foi especificada.
-4. O envio SMTP ocorre **fora** da transação financeira, via script. A ausência de SMTP mantém a notificação `pendente`; o sistema não a marca como enviada. O operador pode reagendar falhas com até 5 tentativas.
+3. O crédito semestral grava vínculo de unicidade do professor com semestre; reexecutar o job não duplica o crédito. O semestre é calculado pela tarefa automática do servidor (janeiro a junho: `/1`; julho a dezembro: `/2`) ou informado no script manual (`AAAA/1` ou `AAAA/2`), pois a data institucional não foi especificada.
+4. O envio SMTP ocorre **fora** da transação financeira, pela tarefa automática do servidor (a cada 60 segundos) ou pelo script manual. A ausência de SMTP mantém a notificação `pendente`; o sistema não a marca como enviada. O operador pode reagendar falhas com até 5 tentativas.
 5. Não se pode apagar movimentações já efetuadas. Contas com histórico são desativadas e vantagens que tiveram resgates são desativadas em vez de eliminadas, preservando auditoria.
 
 ## Estratégia de persistência

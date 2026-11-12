@@ -1,0 +1,28 @@
+@startuml sd02_autenticar_usuario
+!include _estilo.iuml
+title SD02 — Autenticar usuário (UC02 · HU02, HU03)
+
+actor "Usuário\n(aluno, professor\nou empresa)" as U
+boundary "Tela de login\n(View · app.js)" as UI
+control "auth\n(app/routers/auth.py)" as CAU
+participant "segurança\n(app/security.py)" as SEG
+database "Banco de dados" as BD
+
+U -> UI : abre /login
+UI -> CAU : GET /api/sessao
+CAU --> UI : {autenticado: false, csrf_token}
+U -> UI : informa login e senha
+UI -> CAU : POST /api/auth/login (JSON + X-CSRF-Token)
+CAU -> SEG : exigir_csrf(request)
+CAU -> BD : SELECT usuarios WHERE login = ?
+CAU -> SEG : verificar_senha(senha, senha_hash)
+note right of SEG : PBKDF2-SHA256 com salt;\ncomparação em tempo constante
+alt usuário inexistente, inativo ou senha incorreta
+  CAU --> UI : 401 Login ou senha inválidos
+  UI --> U : mensagem de erro
+else credenciais válidas
+  CAU -> CAU : limpa a sessão, grava o id do usuário\ne gera novo token CSRF
+  CAU --> UI : 200 {perfil, csrf_token}\n+ cookie de sessão HttpOnly
+  UI --> U : abre /painel conforme o perfil
+end
+@enduml

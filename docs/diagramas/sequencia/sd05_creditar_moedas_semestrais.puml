@@ -1,0 +1,35 @@
+@startuml sd05_creditar_moedas_semestrais
+!include _estilo.iuml
+title SD05 — Creditar moedas semestrais (UC05 · HU05)
+
+actor "Tempo\n(agendador)" as Tempo
+control "tarefas\n(app/tarefas.py)" as T
+participant "financeiro\n(app/services/financeiro.py)" as SF
+database "Banco de dados" as BD
+
+== Ao iniciar o servidor e a cada INTERVALO_CREDITO_SEGUNDOS (padrão: 6 horas) ==
+Tempo -> T : executar_periodicamente(parar, intervalo_notificacoes, intervalo_credito)
+T -> T : creditar_semestre_atual()
+T -> T : semestre_atual()
+note right of T : janeiro a junho: AAAA/1\njulho a dezembro: AAAA/2
+T -> SF : creditos_semestre(db, semestre)
+SF -> BD : SELECT professores WHERE usuario ativo
+loop para cada professor ativo
+  SF -> BD : SELECT creditos_semestrais (professor, semestre)
+  alt já creditado neste semestre
+    SF -> SF : contabiliza como já creditado
+  else ainda não creditado
+    SF -> BD : SAVEPOINT
+    SF -> BD : INSERT transacoes_moedas (credito_semestral, 1000)
+    SF -> BD : INSERT creditos_semestrais (professor, semestre)\n[único por professor e semestre]
+    SF -> SF : _creditar(db, carteira, 1000)
+    SF -> BD : COMMIT
+    alt IntegrityError (crédito simultâneo)
+      SF -> BD : ROLLBACK
+    end
+  end
+end
+SF --> T : {semestre, creditados, ja_creditados}
+T -> T : registra o resultado no log
+note over Tempo, BD : O saldo não utilizado é mantido: as 1.000 moedas são somadas ao saldo atual.\nAlternativa manual (operador): scripts/creditar_semestre.py chama a mesma creditos_semestre().
+@enduml

@@ -1,0 +1,38 @@
+@startuml sd06_cadastrar_empresa
+!include _estilo.iuml
+title SD06 — Cadastrar empresa parceira (UC06 · HU04)
+
+actor "Empresa parceira" as E
+boundary "Tela de cadastro\n(View · app.js)" as UI
+control "empresas\n(app/routers/empresas.py)" as CE
+participant "segurança\n(app/security.py)" as SEG
+participant "empresas\n(app/services/empresas.py)" as SE
+participant "contas\n(app/services/contas.py)" as SC
+participant "empresas\n(app/repositories/empresas.py)" as RE
+database "Banco de dados" as BD
+
+E -> UI : nome, e-mail de contato, CNPJ (opcional),\ndescrição, login e senha
+UI -> CE : POST /api/empresas (JSON + X-CSRF-Token)
+CE -> SEG : exigir_csrf(request)
+note right of CE : EmpresaCriar (Pydantic) valida campos,\ne-mail e dígitos do CNPJ
+alt dados inválidos
+  CE --> UI : 422 com o campo inválido
+else dados válidos
+  CE -> SE : criar(db, payload)
+  SE -> SC : checar_login(db, login)
+  SE -> SE : _validar_contato(db, email, cnpj)
+  SE -> RE : por_email(db, email)
+  SE -> RE : por_cnpj(db, cnpj)
+  alt login, e-mail ou CNPJ já cadastrado
+    SE --> CE : HTTPException 409
+    CE --> UI : mensagem de erro
+  else cadastro novo
+    SE -> SEG : hash_senha(senha)
+    SE -> BD : INSERT usuarios (perfil empresa), empresas_parceiras
+    SE -> BD : COMMIT
+    SE --> CE : empresa
+    CE --> UI : 201 Empresa cadastrada
+    UI --> E : redireciona para /login?cadastrado=1
+  end
+end
+@enduml

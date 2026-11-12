@@ -1,0 +1,40 @@
+@startuml sd09_resgatar_vantagem
+!include _estilo.iuml
+title SD09 — Resgatar vantagem (UC09 + UC10, UC11, UC12, UC13 · HU13, HU14)
+
+actor Aluno
+boundary "Catálogo\n(View · sprint03.js)" as UI
+control "financeiro\n(app/routers/financeiro.py)" as CF
+participant "segurança\n(app/security.py)" as SEG
+participant "financeiro\n(app/services/financeiro.py)" as SF
+database "Banco de dados" as BD
+
+Aluno -> UI : clica em "Resgatar" e confirma
+UI -> CF : POST /api/resgates {vantagem_id} (+ X-CSRF-Token)
+CF -> SEG : exigir_csrf(request)
+CF -> SEG : usuario_atual(request, db)
+CF -> SEG : exigir_perfil(usuario, 'aluno')
+CF -> SF : resgatar(db, aluno_id, vantagem_id)
+alt vantagem inexistente ou inativa
+  SF --> CF : HTTPException 404
+  CF --> UI : 404 Vantagem indisponível
+else vantagem ativa
+  SF -> SF : carteira_usuario(db, aluno_id)
+  SF -> SF : _debitar(db, carteira, custo)
+  SF -> BD : UPDATE carteiras SET saldo = saldo - custo\nWHERE id = carteira AND saldo >= custo [UC13]
+  alt saldo insuficiente
+    SF -> BD : ROLLBACK
+    SF --> CF : HTTPException 409
+    CF --> UI : 409 Saldo insuficiente
+  else débito realizado
+    SF -> BD : INSERT transacoes_moedas (resgate) [UC10]
+    SF -> BD : INSERT resgates (custo aplicado)
+    SF -> BD : INSERT cupons (código 'MER-' + token aleatório, único) [UC11]
+    SF -> BD : INSERT notificacoes: uma para o aluno e uma para a empresa,\nambas com o código do cupom [UC12, enviadas pelo SD10]
+    SF -> BD : COMMIT
+    SF --> CF : {cupom, vantagem, saldo_atual}
+    CF --> UI : 201
+    UI --> Aluno : "Resgate realizado! Seu cupom é MER-..."
+  end
+end
+@enduml

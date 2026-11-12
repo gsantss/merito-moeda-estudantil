@@ -1,41 +1,31 @@
-# Manifesto — LAB03S03 | Entrega final
+# Manifesto — LAB04S01 | Diagramas de interação e casos de uso restantes
 
-**Data:** outubro de 2026. **Disciplina:** Projeto de Software, PUC Minas. **Projeto:** Sistema de Moeda Estudantil.
+**Data:** novembro de 2026. **Disciplina:** Projeto de Software, PUC Minas. **Projeto:** Sistema de Moeda Estudantil (Mérito+), Release 2.
 
-## Conformidade com o item 4.3 do enunciado
+## Conformidade com o item 4.4 do enunciado
 
-- [x] CRUD **final** de Aluno com telas de cadastro e painel de consulta/edição/exclusão ou desativação, API e validações.
-- [x] CRUD **final** de Empresa Parceira com telas de cadastro e painel de consulta/edição/exclusão ou desativação, API e validações.
-- [x] Apresentação da arquitetura MVC: código-fonte, diagrama atualizado, relatório e slides.
-- [x] Apresentação da persistência: 12 tabelas, ER atualizado da S02, ORM, SQL físico, constraints e transações.
-- [x] Protótipo final funcional cobrindo saldo, extrato, 1.000 moedas semestrais, distribuição, vantagens, resgate, cupom e autorização.
-- [x] Tutorial das tecnologias escolhidas e apresentação com aproximadamente 20 minutos.
-- [x] Testes automatizados: 11 cenários aprovados.
+- [x] **Diagramas de Sequência (UML)**: 10 diagramas, um por caso de uso do catálogo da LAB03S01 (UC01 a UC09 e UC12; UC10, UC11 e UC13 aparecem incluídos em SD04 e SD09). Fontes em `docs/diagramas/sequencia/*.puml`, com PNG e SVG.
+- [x] **Diagrama de Visão Geral de Interação (UML)**: `docs/diagramas/visao_geral_interacao.*`, com usos de interação (`ref`) para cada diagrama de sequência.
+- [x] **Casos de uso restantes implementados**: UC05 (crédito semestral pelo agendador) e UC12 (envio de e-mails), que no LAB03S03 dependiam de um operador, agora rodam automaticamente no servidor (`app/tarefas.py`, `app/services/notificacoes.py`).
+- [x] **Alinhamento modelo × código**: `tests/test_diagramas_interacao.py` verifica que cada função e rota dos diagramas de sequência existe no código.
+- [x] **Testes**: 36 testes automatizados aprovados (11 do LAB03S03 e 25 novos).
 
 ## Principais artefatos para a avaliação
 
 | Caminho | Conteúdo |
 |---|---|
-| `docs/LAB03S03_Relatorio_Completo.pdf` | Relatório acadêmico (8 páginas) |
-| `apresentacao/LAB03S03_Apresentacao_Final_20min.pptx` | Apresentação editável de 20 slides |
-| `apresentacao/LAB03S03_Apresentacao_Final_20min.pdf` | Versão PDF dos slides |
-| `apresentacao/Roteiro_Apresentacao_20min.md` | Roteiro oral, com tempo e perguntas prováveis |
-| `docs/ARQUITETURA_PERSISTENCIA.md` | Descrição técnica completa de MVC, ORM e integridade |
-| `docs/diagramas/` | Modelos ER, arquitetura e fluxo de transações, com fontes editáveis |
-| `docs/API_SPRINT03.md` | Especificação das rotas e permissões |
-| `docs/RASTREABILIDADE_FINAL.md` | Cobertura HU01–HU16 |
-| `app/` | Código do protótipo com View/Controller/Model |
-| `tests/` | Testes reexecutáveis com pytest |
-| `scripts/` | Demo, crédito semestral, notificações e gerador de materiais |
-| `moeda_estudantil.db` | Dados **fictícios** da demonstração local |
-| `README.md` | Instalação, execução, testes, contas e limitações |
+| `docs/LAB04S01_DIAGRAMAS_INTERACAO.md` | Guia da entrega: casos de uso restantes, mapa caso de uso → diagrama → código |
+| `docs/diagramas/sequencia/` | Diagramas de sequência SD01 a SD10 |
+| `docs/diagramas/visao_geral_interacao.*` | Diagrama de visão geral de interação |
+| `app/tarefas.py` | Agendador do servidor: crédito semestral (UC05) e envio da fila (UC12) |
+| `app/services/notificacoes.py` | Envio SMTP da fila de notificações, atrás da interface `EnviadorEmail` |
+| `tests/test_lab04s01.py`, `tests/test_diagramas_interacao.py` | Testes desta entrega |
+| `docs/RASTREABILIDADE_FINAL.md` | Histórias HU01 a HU16 com evidências e diagramas de sequência |
 
 ## Premissas e limitações declaradas
 
-- Sem configurações SMTP reais, mensagens permanecem na fila, sem afirmar envio real.
-- Crédito semestral é responsabilidade de um job do operador; `python -m scripts.creditar_semestre AAAA/S`.
-- Contas com registros financeiros e vantagens com resgates são desativadas, não apagadas fisicamente.
-- O banco SQLite e credenciais predefinidas são apenas para demonstrar localmente, não para produção.
-- A estrutura de pastas não inclui `.venv`, `__pycache__` ou caches; dependências se instalam por requirements.
+- Sem SMTP configurado, as notificações continuam pendentes no banco (comportamento mantido do LAB03S03).
+- O semestre é definido pelo calendário civil: janeiro a junho (`AAAA/1`) e julho a dezembro (`AAAA/2`).
+- As regras de negócio, os modelos e as telas do LAB03S03 não foram alterados.
 
-**Referências originais:** documentos do usuário sob `referencias/` e relatório S02 preservado em `referencias/Sprint02_historico/`.
+**Histórico:** o manifesto da entrega anterior está em `referencias/LAB03S03_historico/MANIFESTO_ENTREGA.md`.

@@ -1,0 +1,91 @@
+@startuml visao_geral_interacao
+' Diagrama de Visão Geral de Interação (UML) — Sistema de Moeda Estudantil · LAB04S01
+' Cada nó "ref SDnn" é um uso de interação que referencia o diagrama de sequência
+' docs/diagramas/sequencia/sdnn_*.puml. Os nós de decisão mostram como as interações se encadeiam.
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam ArrowColor #12344D
+skinparam activity {
+  BackgroundColor #F6FAFB
+  BorderColor #4C7A83
+  FontColor #12344D
+  DiamondBackgroundColor #FFF8E8
+  DiamondBorderColor #4C7A83
+}
+skinparam partition {
+  BorderColor #4C7A83
+  FontColor #12344D
+}
+skinparam note {
+  BackgroundColor #FFF8DC
+  BorderColor #B8A65A
+}
+
+title Diagrama de Visão Geral de Interação — Mérito+ (Sistema de Moeda Estudantil) · LAB04S01
+
+start
+fork
+  partition "Interações iniciadas pelo usuário" {
+    if (Já possui conta?) then (não)
+      if (Perfil a cadastrar?) then (aluno)
+        :<b>ref</b>
+        SD01 — Cadastrar aluno;
+      else (empresa parceira)
+        :<b>ref</b>
+        SD06 — Cadastrar empresa parceira;
+      endif
+      note right: Professores não se cadastram:\nsão pré-cadastrados pela instituição.
+    else (sim)
+    endif
+    repeat
+      :<b>ref</b>
+      SD02 — Autenticar usuário;
+    repeat while (Credenciais válidas?) is (não) not (sim)
+    repeat
+      switch (Perfil autenticado?)
+      case (professor)
+        :<b>ref</b>
+        SD04 — Distribuir moedas;
+        :<b>ref</b>
+        SD03 — Consultar saldo e extrato;
+      case (aluno)
+        :<b>ref</b>
+        SD08 — Consultar vantagens;
+        if (Deseja resgatar e tem saldo?) then (sim)
+          :<b>ref</b>
+          SD09 — Resgatar vantagem;
+        else (não)
+        endif
+        :<b>ref</b>
+        SD03 — Consultar saldo e extrato;
+      case (empresa parceira)
+        :<b>ref</b>
+        SD07 — Cadastrar vantagem;
+      endswitch
+    repeat while (Continuar usando o sistema?) is (sim) not (não: sair)
+  }
+fork again
+  partition "Iniciada pelo tempo: crédito semestral" {
+    :Início do servidor ou
+    intervalo de crédito (6 h);
+    :<b>ref</b>
+    SD05 — Creditar moedas semestrais;
+  }
+fork again
+  partition "Iniciada pelo tempo: envio de e-mails" {
+    :A cada intervalo de
+    notificações (60 s);
+    :<b>ref</b>
+    SD10 — Enviar notificações por e-mail;
+    note right: Envia as notificações pendentes\ngravadas por SD04 e SD09.
+  }
+end fork
+stop
+
+legend right
+  <b>ref</b> = uso de interação (diagrama de sequência em docs/diagramas/sequencia/)
+  As três regiões do fork são concorrentes: o crédito semestral e o envio
+  de e-mails rodam no servidor enquanto os usuários usam o sistema.
+endlegend
+@enduml

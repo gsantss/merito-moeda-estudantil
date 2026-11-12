@@ -1,0 +1,36 @@
+@startuml sd10_enviar_notificacoes
+!include _estilo.iuml
+title SD10 — Enviar notificações por e-mail (UC12 · HU08, HU14)
+
+actor "Tempo\n(agendador)" as Tempo
+control "tarefas\n(app/tarefas.py)" as T
+participant "notificacoes\n(app/services/notificacoes.py)" as N
+participant "EnviadorSmtp\n(app/services/notificacoes.py)" as ENV
+database "Banco de dados" as BD
+participant "Servidor SMTP\n(externo)" as SMTP
+
+== A cada INTERVALO_NOTIFICACOES_SEGUNDOS (padrão: 60 segundos) ==
+Tempo -> T : executar_periodicamente(parar, intervalo_notificacoes, intervalo_credito)
+T -> N : enviar_pendentes()
+N -> N : do_ambiente()
+note right of N : ConfigSmtp lê SMTP_HOST, SMTP_PORT,\nSMTP_USER, SMTP_PASSWORD e SMTP_FROM
+alt SMTP_HOST não configurado
+  N --> T : {aviso: smtp_nao_configurado}
+  note over N, BD : as notificações continuam pendentes no banco
+else SMTP configurado
+  N -> N : processar_pendentes(db, EnviadorSmtp(config))
+  N -> BD : SELECT notificacoes WHERE status IN (pendente, falhou)\nAND tentativas < 5 ORDER BY criado_em
+  loop para cada notificação
+    N -> ENV : enviar(destinatario, assunto, corpo)
+    ENV -> SMTP : SSL (porta 465) ou STARTTLS (587, 2525), login e envio
+    alt mensagem aceita
+      N -> BD : status = enviado
+    else falha de rede ou recusa
+      N -> BD : status = falhou (nova tentativa no próximo ciclo)
+    end
+    N -> BD : tentativas = tentativas + 1; COMMIT
+  end
+  N --> T : {enviadas, tentadas}
+end
+note over Tempo, SMTP : Indireção / Variações Protegidas (GRASP): processar_pendentes depende só da interface EnviadorEmail.\nAlternativa manual (operador): scripts/processar_notificacoes.py chama a mesma enviar_pendentes().
+@enduml

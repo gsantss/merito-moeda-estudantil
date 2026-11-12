@@ -1,0 +1,31 @@
+@startuml sd07_cadastrar_vantagem
+!include _estilo.iuml
+title SD07 — Cadastrar vantagem (UC07 · HU11)
+
+actor "Empresa parceira" as E
+boundary "Painel da empresa\n(View · sprint03.js)" as UI
+control "financeiro\n(app/routers/financeiro.py)" as CF
+participant "segurança\n(app/security.py)" as SEG
+database "Banco de dados" as BD
+
+E -> UI : título, descrição, URL da foto, custo em moedas
+UI -> CF : POST /api/vantagens (JSON + X-CSRF-Token)
+CF -> SEG : exigir_csrf(request)
+note right of CF : VantagemCriar (Pydantic): título com 3+ caracteres,\ndescrição com 8+, foto http(s), custo maior ou igual a 1
+alt campos inválidos
+  CF --> UI : 422 com o campo inválido
+else campos válidos
+  CF -> SEG : usuario_atual(request, db)
+  CF -> SEG : exigir_perfil(usuario, 'empresa')
+  alt usuário não é empresa parceira
+    CF --> UI : 403
+  else empresa parceira
+    CF -> BD : INSERT vantagens (empresa_id = usuário, ativa)
+    CF -> BD : COMMIT
+    CF -> CF : apresentar_vantagem(vantagem, empresa.nome)
+    CF --> UI : 201 vantagem publicada
+    UI -> CF : GET /api/vantagens/minhas
+    CF --> UI : vantagens da empresa (ativas e inativas)
+  end
+end
+@enduml

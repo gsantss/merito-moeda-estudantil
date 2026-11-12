@@ -1,0 +1,43 @@
+@startuml sd01_cadastrar_aluno
+!include _estilo.iuml
+title SD01 — Cadastrar aluno (UC01 · HU01)
+
+actor Aluno
+boundary "Tela de cadastro\n(View · app.js)" as UI
+control "consulta\n(app/routers/consulta.py)" as CC
+control "alunos\n(app/routers/alunos.py)" as CA
+participant "segurança\n(app/security.py)" as SEG
+participant "alunos\n(app/services/alunos.py)" as SA
+participant "contas\n(app/services/contas.py)" as SC
+participant "alunos\n(app/repositories/alunos.py)" as RA
+database "Banco de dados" as BD
+
+Aluno -> UI : abre /cadastro/aluno
+UI -> CC : GET /api/instituicoes
+CC -> BD : SELECT instituicoes WHERE ativa
+CC --> UI : instituições pré-cadastradas
+Aluno -> UI : nome, e-mail, CPF, RG, endereço, curso,\ninstituição, login e senha
+UI -> CA : POST /api/alunos (JSON + X-CSRF-Token)
+CA -> SEG : exigir_csrf(request)
+note right of CA : AlunoCriar (Pydantic) valida tamanhos,\nformato do e-mail e dígitos do CPF
+alt dados inválidos
+  CA --> UI : 422 com o campo inválido
+else dados válidos
+  CA -> SA : criar(db, payload)
+  SA -> SC : validar_instituicao(db, instituicao_id)
+  SA -> SC : checar_login(db, login)
+  SA -> RA : por_cpf(db, cpf)
+  SA -> RA : por_email(db, email)
+  alt instituição inválida, login, CPF ou e-mail já cadastrado
+    SA --> CA : HTTPException 422 / 409
+    CA --> UI : mensagem de erro
+  else cadastro novo
+    SA -> SEG : hash_senha(senha)
+    SA -> BD : INSERT usuarios (perfil aluno), alunos,\ncarteiras (saldo 0)
+    SA -> BD : COMMIT
+    SA --> CA : aluno
+    CA --> UI : 201 Aluno cadastrado
+    UI --> Aluno : redireciona para /login?cadastrado=1
+  end
+end
+@enduml

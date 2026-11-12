@@ -1,0 +1,20 @@
+@startuml sd08_consultar_vantagens
+!include _estilo.iuml
+title SD08 — Consultar vantagens (UC08 · HU12)
+
+actor Aluno
+boundary "Catálogo\n(View · sprint03.js)" as UI
+control "financeiro\n(app/routers/financeiro.py)" as CF
+database "Banco de dados" as BD
+
+Aluno -> UI : abre /vantagens
+UI -> CF : GET /api/vantagens
+CF -> BD : SELECT vantagens JOIN empresas_parceiras\nWHERE ativa ORDER BY titulo
+CF -> CF : apresentar_vantagem(vantagem, empresa.nome)
+CF --> UI : 200 lista (título, descrição, foto, custo, empresa)
+alt nenhuma vantagem ativa
+  UI --> Aluno : "Ainda não existem vantagens ativas"
+else vantagens disponíveis
+  UI --> Aluno : cartões com foto, descrição, custo e empresa;\nbotão "Resgatar" para o aluno autenticado
+end
+@enduml

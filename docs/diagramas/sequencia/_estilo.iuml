@@ -1,0 +1,32 @@
+' Estilo comum dos diagramas de sequência (paleta do Mérito+).
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 260
+skinparam ParticipantPadding 12
+skinparam BoxPadding 8
+skinparam sequence {
+  ArrowColor #12344D
+  LifeLineBorderColor #4C7A83
+  LifeLineBackgroundColor #EEF6F9
+  ParticipantBorderColor #4C7A83
+  ParticipantBackgroundColor #F6FAFB
+  ParticipantFontColor #12344D
+  ActorBorderColor #12344D
+  ActorBackgroundColor #EEF6F9
+  GroupBorderColor #4C7A83
+  GroupBackgroundColor #FFF8E8
+  DividerBackgroundColor #EEF6F9
+  DividerBorderColor #4C7A83
+}
+skinparam note {
+  BackgroundColor #FFF8DC
+  BorderColor #B8A65A
+}
+skinparam database {
+  BackgroundColor #FFF0D0
+  BorderColor #12344D
+}
+autonumber "<b>0."

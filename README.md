@@ -1,22 +1,29 @@
-# LAB03S03 — Sistema de Moeda Estudantil | Protótipo Final
+# LAB04S01 — Sistema de Moeda Estudantil | Diagramas de interação e casos de uso restantes
 
-**PUC Minas · Engenharia de Software · Projeto de Software · Laboratório 3 · 2º semestre de 2026**
+**PUC Minas · Engenharia de Software · Projeto de Software · Release 2 · 2º semestre de 2026**
 
-Esta é a **Sprint 03 completa**, construída sobre o código e o banco da LAB03S02, preservando a modelagem da LAB03S01. O enunciado exige os CRUDs finais de aluno e empresa, arquitetura MVC e explicação da persistência. A apresentação final pede ainda que o protótipo atenda às regras de negócio da moeda estudantil e apresente um tutorial das tecnologias escolhidas.
+Esta entrega atende ao item 4.4 do enunciado sobre o protótipo do LAB03S03:
 
-## Conteúdo da entrega
+- **Diagramas de Sequência** (um por caso de uso) e **Diagrama de Visão Geral de Interação**, em UML: `docs/diagramas/sequencia/` e `docs/diagramas/visao_geral_interacao.*`.
+- **Casos de uso restantes**: o crédito semestral (UC05) e o envio de e-mails (UC12) passam a ser feitos automaticamente pelo servidor, sem operador.
+
+Detalhes, mapa caso de uso → diagrama → código e como os diagramas se mantêm alinhados ao código: [`docs/LAB04S01_DIAGRAMAS_INTERACAO.md`](docs/LAB04S01_DIAGRAMAS_INTERACAO.md).
+
+![Visão geral de interação](docs/diagramas/visao_geral_interacao.png)
+
+## Funcionalidades (acumuladas do LAB03S03)
 
 - **Protótipo funcional**: FastAPI + Jinja2 + CSS + JavaScript + SQLAlchemy + SQLite. Interface em português.
 - **CRUD final de aluno e empresa parceira**: inclusão, consulta, edição, exclusão física quando permitida ou desativação com histórico; validação de CPF/CNPJ, instituição e perfis.
 - **Autenticação e autorização**: sessão HTTPOnly, PBKDF2-SHA256 com salt, proteção CSRF, autorização por usuário e perfil.
 - **Carteiras e extratos**: saldo de aluno/professor e histórico de crédito, distribuição e resgate.
-- **Crédito semestral**: 1.000 moedas acumuláveis, uma vez por professor por semestre, executado por job externo.
+- **Crédito semestral**: 1.000 moedas acumuláveis, uma vez por professor por semestre, creditadas automaticamente pelo servidor (LAB04S01).
 - **Distribuição**: professor → aluno da instituição, motivo obrigatório, saldo positivo, débito/crédito e notificação gravados juntos.
 - **Vantagens**: criação, edição, desativação e catálogo público com título, custo, foto e descrição.
 - **Resgate**: validação de saldo, débito indivisível, cupom aleatório único e notificações para aluno e empresa.
 - **Uso de cupom**: empresa dona da vantagem pode confirmar e baixar um cupom uma única vez.
 - **Material acadêmico**: relatório final de 8 páginas, ER, arquitetura, fluxo transacional, slide deck de 20 páginas e roteiro de 20 minutos.
-- **Testes**: 11 testes automatizados aprovados na preparação da entrega.
+- **Testes**: 36 testes automatizados (11 do LAB03S03 e 25 do LAB04S01).
 
 ## 1. Requisitos
 
@@ -50,7 +57,7 @@ python -m pip install -r requirements.txt
 python run.py
 ```
 
-O banco SQLite é criado na primeira execução. O pacote inclui um **banco fictício de demonstração**, sem dados reais, preparado para facilitar a avaliação.
+O banco SQLite é criado na primeira execução. Para ter aluno, empresa e vantagem fictícios prontos para a demonstração, execute `python -m scripts.preparar_demo` (seção 4).
 
 ## 4. Dados de demonstração
 
@@ -88,7 +95,9 @@ python -m scripts.creditar_semestre 2026/2
 python -m scripts.creditar_semestre 2026/2
 ```
 
-A segunda execução não realiza novo crédito. Troque para `2027/1` no semestre seguinte. Em produção, configure cron, Windows Task Scheduler, Azure Function ou outro agendador externo autorizado.
+A segunda execução não realiza novo crédito. Sem argumento, o script usa o semestre atual.
+
+**Desde o LAB04S01, o crédito é automático:** o próprio servidor faz o papel de agendador (caso de uso UC05). Ao iniciar e a cada 6 horas, identifica o semestre atual (janeiro a junho: `AAAA/1`; julho a dezembro: `AAAA/2`) e credita os professores que ainda não receberam. Código em `app/tarefas.py`; desligue com `TAREFAS_AUTOMATICAS=0`.
 
 ## 7. Envio de e-mails: fila persistente + SMTP
 
@@ -111,13 +120,21 @@ python -m scripts.processar_notificacoes
 
 **Sem SMTP configurado, nenhuma mensagem é enviada**: o script avisa e mantém os registros pendentes. Dados de demo usam domínios `.local`, portanto os endereços fictícios não recebem e-mail real. Para testar envio de verdade, atualize os e-mails cadastrados para caixas de teste autorizadas e configure uma conta SMTP própria. O sistema limita as tentativas por notificação a cinco.
 
+**Desde o LAB04S01, o envio é automático:** com o SMTP configurado, o servidor envia a fila a cada 60 segundos (caso de uso UC12, `app/services/notificacoes.py`). A porta 465 usa SSL; 587 ou 2525 usam STARTTLS. O script acima continua disponível para envio manual.
+
 ## 8. Executar testes
 
 ```bash
 python -m pytest -q
 ```
 
-Foram verificados: criação e manutenção de cadastros, autenticação, privacidade, vínculo institucional, crédito idempotente, distribuição/rollback por saldo insuficiente, resgate, cupom único, autorização cruzada, desativação e fila de e-mail.
+Os testes do LAB04S01 verificam:
+
+- **Crédito automático:** semestre atual, crédito único, início e encerramento das tarefas com o servidor.
+- **Fila de e-mails:** envio, novas tentativas e limite de cinco.
+- **Diagramas × código:** cada função e rota citada nos diagramas de sequência existe no código (`tests/test_diagramas_interacao.py`).
+
+Os testes do LAB03S03 verificam: criação e manutenção de cadastros, autenticação, privacidade, vínculo institucional, crédito idempotente, distribuição/rollback por saldo insuficiente, resgate, cupom único, autorização cruzada, desativação e fila de e-mail.
 
 ## 9. Estrutura do projeto
 
@@ -125,6 +142,7 @@ Foram verificados: criação e manutenção de cadastros, autenticação, privac
 LAB03S03_Completo/
 ├── app/
 │   ├── main.py, config.py, database.py, models.py, schemas*.py, security.py
+│   ├── tarefas.py          # Crédito semestral e envio de e-mails automáticos (LAB04S01)
 │   ├── routers/            # Controllers FastAPI
 │   ├── services/           # Regras do domínio e transações
 │   ├── repositories/       # Consultas dos CRUDs
@@ -137,18 +155,18 @@ LAB03S03_Completo/
 │   └── gerar_materiais_final.py
 ├── tests/                  # pytest
 ├── docs/
+│   ├── LAB04S01_DIAGRAMAS_INTERACAO.md   # Diagramas de sequência e visão geral (LAB04S01)
 │   ├── LAB03S03_Relatorio_Completo.pdf
 │   ├── ARQUITETURA_PERSISTENCIA.md
 │   ├── API_SPRINT03.md
 │   ├── RASTREABILIDADE_FINAL.md
 │   ├── esquema_sqlite.sql
-│   └── diagramas/          # ER, MVC, fluxo financeiro em formatos editáveis
+│   └── diagramas/          # Sequência (sequencia/), visão geral de interação, ER, MVC e fluxo financeiro
 ├── apresentacao/
 │   ├── LAB03S03_Apresentacao_Final_20min.pptx
 │   ├── LAB03S03_Apresentacao_Final_20min.pdf
 │   └── Roteiro_Apresentacao_20min.md
 ├── referencias/             # arquivos de origem e documentação da S02
-├── moeda_estudantil.db      # banco de demonstração, fictício
 ├── iniciar_windows.ps1
 ├── requirements.txt
 └── run.py
@@ -164,7 +182,8 @@ O projeto é um **protótipo acadêmico**. Não inclui envio de e-mail já opera
 
 ## 12. Documentos e apresentação
 
-- Relatório de entrega: `docs/LAB03S03_Relatorio_Completo.pdf`.
+- Diagramas de sequência e de visão geral de interação (LAB04S01): `docs/LAB04S01_DIAGRAMAS_INTERACAO.md`.
+- Relatório de entrega do LAB03S03: `docs/LAB03S03_Relatorio_Completo.pdf`.
 - PPTX editável e slides PDF: `apresentacao/LAB03S03_Apresentacao_Final_20min.*`.
 - Script de fala em 20 minutos: `apresentacao/Roteiro_Apresentacao_20min.md`.
 - Modelo ER: `docs/diagramas/modelo_er.*` (mantido da S02).
