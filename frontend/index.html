@@ -1,5 +1,31 @@
-{% extends 'base.html' %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#12344d">
+  <meta name="description" content="Sistema de Moeda Estudantil da PUC Minas. Laboratório 4.">
+  <title>Início · Mérito+ | Moeda Estudantil</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <script src="/static/js/cliente-api.js" defer></script>
+  <script src="/static/js/app.js" defer></script>
+  <script src="/static/js/sprint03.js" defer></script>
+</head>
+<body data-page="inicio">
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="/" aria-label="Mérito+, página inicial"><span class="brand-mark" aria-hidden="true">✦</span><span>Mérito<span class="brand-plus">+</span><small>MOEDA ESTUDANTIL</small></span></a>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <a href="/" class="nav-home">Início</a>
+        <a href="/parceiros" class="nav-partners">Parceiros</a>
+        <a href="/vantagens" class="nav-catalog">Vantagens</a>
+        <a href="/painel" class="nav-panel" hidden>Meu painel</a>
+        <a href="/login" class="nav-login btn btn-outline btn-sm">Entrar</a>
+        <button type="button" class="nav-logout btn btn-outline btn-sm" hidden>Sair <span aria-hidden="true">↗</span></button>
+      </nav>
+    </div>
+  </header>
+  <main id="conteudo">
 <section class="hero">
   <div class="wrap hero-grid">
     <div class="hero-copy">
@@ -23,6 +49,10 @@
   <article class="feature"><span class="feature-icon teal">02</span><h3>Professores</h3><p>Contas vinculadas à instituição, com créditos semestrais para premiar participação e boas atitudes.</p><a href="/login" class="link-arrow">Acessar conta <span>→</span></a></article>
   <article class="feature"><span class="feature-icon gold">03</span><h3>Empresas parceiras</h3><p>Cadastre vantagens e entregue produtos e descontos aos estudantes por cupons.</p><a href="/cadastro/empresa" class="link-arrow">Seja parceiro <span>→</span></a></article>
  </div>
- <div class="notice"><strong>Sprint 03 — protótipo final.</strong> Cadastros completos, autenticação, extrato, créditos semestrais, distribuição, catálogo, resgate, cupons e processamento de notificações por SMTP configurável.</div>
+ <div class="notice"><strong>Release 2 — publicado na nuvem.</strong> Cadastros completos, autenticação, extrato, créditos semestrais, distribuição, catálogo, resgate, cupons e processamento de notificações por SMTP configurável.</div>
 </section>
-{% endblock %}
+</main>
+  <footer class="site-footer"><div class="wrap footer-inner"><div><strong>✦ Mérito+</strong> <span class="muted">· Projeto acadêmico — PUC Minas</span></div><span>LAB04 · Release 2 · 2026</span></div></footer>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

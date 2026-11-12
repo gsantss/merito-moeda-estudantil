@@ -1,0 +1,90 @@
+@startuml implantacao
+' Diagrama de Implantação (UML) — Sistema de Moeda Estudantil · LAB04S02
+' Reflete frontend/vercel.json, render.yaml e app/ (fonte da verdade da configuração).
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam nodesep 55
+skinparam ranksep 60
+skinparam node {
+  BackgroundColor #F6FAFB
+  BorderColor #12344D
+}
+skinparam artifact {
+  BackgroundColor #FFFFFF
+  BorderColor #4C7A83
+}
+skinparam component {
+  BackgroundColor #FFFFFF
+  BorderColor #4C7A83
+}
+skinparam database {
+  BackgroundColor #FFF0D0
+  BorderColor #12344D
+}
+skinparam note {
+  BackgroundColor #FFF8DC
+  BorderColor #B8A65A
+}
+skinparam ArrowColor #12344D
+
+title Diagrama de Implantação — Mérito+ (Sistema de Moeda Estudantil) · LAB04S02
+
+node "Dispositivo do usuário" <<device>> as dispositivo {
+  node "Navegador web" <<executionEnvironment>> as navegador {
+    artifact "Páginas carregadas\n(HTML, CSS, JavaScript)" as paginasCliente
+  }
+}
+
+node "Vercel" <<cloud>> as vercel {
+  node "Rede de borda (CDN)" <<executionEnvironment>> as cdn {
+    artifact "frontend/\n7 páginas HTML · styles.css\ncliente-api.js · app.js · sprint03.js" as frontend
+    component "Rewrite /api/* (proxy)\nfrontend/vercel.json" as proxy
+  }
+}
+
+node "Render" <<cloud>> as render {
+  node "Web Service: merito-moeda-estudantil-api\n(plano free · região virginia)" <<executionEnvironment>> as webservice {
+    node "Python 3.13 · Uvicorn" <<executionEnvironment>> as python {
+      artifact "app/ (FastAPI)" as apiArtefato
+      component "Controllers\napp/routers" as controllers
+      component "Serviços e modelos\napp/services · app/models" as model
+      component "Tarefas automáticas\napp/tarefas.py\n(crédito semestral, fila de e-mails)" as tarefas
+    }
+  }
+  database "PostgreSQL 16: merito-db\n(plano free · sem acesso externo)" as postgres {
+    artifact "banco moeda_estudantil\n12 tabelas" as banco
+  }
+}
+
+node "Servidor SMTP\n(provedor de e-mail)" <<external>> as smtp
+
+node "GitHub" <<cloud>> as github {
+  artifact "Repositório do projeto\nrender.yaml · frontend/vercel.json" as repositorio
+}
+
+navegador --> cdn : HTTPS\npáginas e /api/*
+proxy --> webservice : HTTPS\n/api/* (cookie de sessão + CSRF)
+webservice --> postgres : PostgreSQL / TCP 5432\n(rede interna do Render)
+tarefas ..> smtp : SMTP + TLS\n(porta 587/465/2525)
+repositorio ..> vercel : <<deploy>>\npush na branch principal
+repositorio ..> render : <<deploy>>\nBlueprint (render.yaml)
+apiArtefato ..> controllers : <<manifest>>
+apiArtefato ..> model : <<manifest>>
+apiArtefato ..> tarefas : <<manifest>>
+frontend ..> paginasCliente : <<deploy>>\n(download)
+
+note right of proxy
+  O navegador só fala com a Vercel (uma única origem).
+  A Vercel repassa /api/* para o Render, por isso o
+  cookie de sessão HttpOnly e o token CSRF funcionam
+  sem CORS e sem cookies de terceiros.
+end note
+
+note bottom of postgres
+  DATABASE_URL, SECRET_KEY e DEMO_SENHA são
+  variáveis do serviço no Render (geradas por
+  render.yaml); não ficam no repositório.
+end note
+
+@enduml

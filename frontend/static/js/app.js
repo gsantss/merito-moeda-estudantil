@@ -1,4 +1,4 @@
-/** Sprint 03 — Views consumindo controllers JSON via fetch. Nenhuma regra de autorização está somente no front-end. */
+/** Views consumindo controllers JSON via fetch (cliente-api.js). Nenhuma regra de autorização está somente no front-end. */
 (() => {
   'use strict';
   const page = document.body.dataset.page;
@@ -18,15 +18,11 @@
     if (Array.isArray(detail)) return detail.map(d => `${d.loc?.at(-1) || 'Campo'}: ${d.msg || 'Valor inválido'}`).join(' · ');
     return 'Não foi possível concluir a solicitação.';
   };
+  // Cliente HTTP compartilhado (cliente-api.js): mesma origem, CSRF e tolerância ao "despertar" da API na nuvem.
   const api = async (url, options = {}) => {
-    const headers = { ...(options.headers || {}) };
-    if (options.body) headers['Content-Type'] = 'application/json';
-    if ((options.method || 'GET').toUpperCase() !== 'GET') headers['X-CSRF-Token'] = state.csrf_token;
-    const response = await fetch(url, { ...options, headers, credentials: 'same-origin' });
-    let data;
-    try { data = await response.json(); } catch { data = {}; }
-    if (!response.ok) throw new Error(messageFrom(data.detail));
-    return data;
+    const { ok, dados } = await window.MeritoApi.requisitar(url, { ...options, csrf: state.csrf_token });
+    if (!ok) throw new Error(messageFrom(dados.detail));
+    return dados;
   };
   const toObject = (form) => Object.fromEntries(new FormData(form).entries());
   const valid = (form) => { if (form.reportValidity()) return true; toast('Confira os campos obrigatórios do formulário.', 'error'); return false; };

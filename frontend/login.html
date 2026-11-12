@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#12344d">
+  <meta name="description" content="Sistema de Moeda Estudantil da PUC Minas. Laboratório 4.">
+  <title>Entrar · Mérito+ | Moeda Estudantil</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <script src="/static/js/cliente-api.js" defer></script>
+  <script src="/static/js/app.js" defer></script>
+  <script src="/static/js/sprint03.js" defer></script>
+</head>
+<body data-page="login">
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="/" aria-label="Mérito+, página inicial"><span class="brand-mark" aria-hidden="true">✦</span><span>Mérito<span class="brand-plus">+</span><small>MOEDA ESTUDANTIL</small></span></a>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <a href="/" class="nav-home">Início</a>
+        <a href="/parceiros" class="nav-partners">Parceiros</a>
+        <a href="/vantagens" class="nav-catalog">Vantagens</a>
+        <a href="/painel" class="nav-panel" hidden>Meu painel</a>
+        <a href="/login" class="nav-login btn btn-outline btn-sm">Entrar</a>
+        <button type="button" class="nav-logout btn btn-outline btn-sm" hidden>Sair <span aria-hidden="true">↗</span></button>
+      </nav>
+    </div>
+  </header>
+  <main id="conteudo">
+<section class="page-shell"><div class="wrap login-wrap"><div class="login-panel"><div class="login-emblem">✦</div><div class="eyebrow">BEM-VINDO DE VOLTA</div><h1>Acesse sua conta.</h1><p>Entre para acompanhar seus dados e gerenciar seu perfil na plataforma.</p><form id="form-login" class="login-form" novalidate><label class="field">Login<input name="login" required autocomplete="username" placeholder="Seu login"></label><label class="field">Senha<input name="senha" type="password" required autocomplete="current-password" placeholder="Sua senha"></label><button class="btn btn-primary btn-block" type="submit">Entrar na plataforma <span>→</span></button></form><div class="login-bottom">Novo por aqui? <a href="/cadastro/aluno">Sou estudante</a> · <a href="/cadastro/empresa">Sou empresa</a></div></div><div class="login-side"><div class="quote-mark">“</div><h2>Reconhecer o esforço é incentivar o futuro.</h2><div class="quote-bottom">MÉRITO+ <span>✧</span> PROJETO DE SOFTWARE</div></div></div></section>
+</main>
+  <footer class="site-footer"><div class="wrap footer-inner"><div><strong>✦ Mérito+</strong> <span class="muted">· Projeto acadêmico — PUC Minas</span></div><span>LAB04 · Release 2 · 2026</span></div></footer>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

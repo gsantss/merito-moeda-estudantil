@@ -1,31 +1,32 @@
-# Manifesto — LAB04S01 | Diagramas de interação e casos de uso restantes
+# Manifesto — LAB04S02 | Implantação na nuvem
 
 **Data:** novembro de 2026. **Disciplina:** Projeto de Software, PUC Minas. **Projeto:** Sistema de Moeda Estudantil (Mérito+), Release 2.
 
-## Conformidade com o item 4.4 do enunciado
+## Conformidade com o item 4.5 do enunciado
 
-- [x] **Diagramas de Sequência (UML)**: 10 diagramas, um por caso de uso do catálogo da LAB03S01 (UC01 a UC09 e UC12; UC10, UC11 e UC13 aparecem incluídos em SD04 e SD09). Fontes em `docs/diagramas/sequencia/*.puml`, com PNG e SVG.
-- [x] **Diagrama de Visão Geral de Interação (UML)**: `docs/diagramas/visao_geral_interacao.*`, com usos de interação (`ref`) para cada diagrama de sequência.
-- [x] **Casos de uso restantes implementados**: UC05 (crédito semestral pelo agendador) e UC12 (envio de e-mails), que no LAB03S03 dependiam de um operador, agora rodam automaticamente no servidor (`app/tarefas.py`, `app/services/notificacoes.py`).
-- [x] **Alinhamento modelo × código**: `tests/test_diagramas_interacao.py` verifica que cada função e rota dos diagramas de sequência existe no código.
-- [x] **Testes**: 36 testes automatizados aprovados (11 do LAB03S03 e 25 novos).
+- [x] **Diagrama de Implantação** em UML: `docs/diagramas/implantacao.puml` (fonte) e `.png`, `.svg`, `.pdf`.
+- [x] **Aplicação implantada na nuvem com Vercel e Render**: interface na Vercel (`frontend/`, `frontend/vercel.json`), API e PostgreSQL no Render (`render.yaml`). Endereços no `README.md`.
+- [x] **Interface gráfica**: as telas do LAB03S03, agora publicadas como páginas estáticas que se comunicam com a API pelo proxy `/api` da Vercel.
+- [x] **Modelos atualizados conforme o código**: arquitetura MVC (`docs/diagramas/arquitetura_lab04.*`), `docs/ARQUITETURA_PERSISTENCIA.md`, `docs/esquema_postgresql.sql`, rastreabilidade e API.
+- [x] **Documentação para reproduzir o ambiente**: `docs/IMPLANTACAO.md` (passo a passo, variáveis, limites do plano gratuito, solução de problemas).
+- [x] **Testes**: 61 testes automatizados (LAB03S03, LAB04S01 e LAB04S02) aprovados no SQLite e no PostgreSQL, além de verificação ponta a ponta com a API em modo produção.
 
 ## Principais artefatos para a avaliação
 
 | Caminho | Conteúdo |
 |---|---|
-| `docs/LAB04S01_DIAGRAMAS_INTERACAO.md` | Guia da entrega: casos de uso restantes, mapa caso de uso → diagrama → código |
-| `docs/diagramas/sequencia/` | Diagramas de sequência SD01 a SD10 |
-| `docs/diagramas/visao_geral_interacao.*` | Diagrama de visão geral de interação |
-| `app/tarefas.py` | Agendador do servidor: crédito semestral (UC05) e envio da fila (UC12) |
-| `app/services/notificacoes.py` | Envio SMTP da fila de notificações, atrás da interface `EnviadorEmail` |
-| `tests/test_lab04s01.py`, `tests/test_diagramas_interacao.py` | Testes desta entrega |
-| `docs/RASTREABILIDADE_FINAL.md` | Histórias HU01 a HU16 com evidências e diagramas de sequência |
+| `docs/IMPLANTACAO.md` | Como a aplicação foi implantada, por que e como reproduzir |
+| `docs/diagramas/implantacao.*` | Diagrama de Implantação (UML) |
+| `docs/diagramas/arquitetura_lab04.*` | Arquitetura MVC na nuvem |
+| `render.yaml` | Infraestrutura do Render como código (API + PostgreSQL) |
+| `frontend/vercel.json` | Configuração da Vercel: URLs, proxy `/api` e cabeçalhos de segurança |
+| `app/tarefas.py`, `app/services/notificacoes.py` | Crédito semestral e fila de e-mails automáticos no servidor (desde o LAB04S01; dispensam agendador pago) |
+| `tests/test_implantacao.py` | Testes da implantação e do alinhamento interface × API |
 
 ## Premissas e limitações declaradas
 
-- Sem SMTP configurado, as notificações continuam pendentes no banco (comportamento mantido do LAB03S03).
-- O semestre é definido pelo calendário civil: janeiro a junho (`AAAA/1`) e julho a dezembro (`AAAA/2`).
-- As regras de negócio, os modelos e as telas do LAB03S03 não foram alterados.
+- Planos gratuitos: a API "dorme" após um período sem acessos (o primeiro acesso leva cerca de 1 minuto) e o PostgreSQL gratuito do Render expira 30 dias após a criação.
+- Segredos (`SECRET_KEY`, `DEMO_SENHA`, `SMTP_*`) ficam apenas no painel do Render; nada sensível está no repositório ou neste pacote.
+- Sem `SMTP_*` configurado, as notificações permanecem pendentes no banco, como no LAB03S03.
 
-**Histórico:** o manifesto da entrega anterior está em `referencias/LAB03S03_historico/MANIFESTO_ENTREGA.md`.
+**Histórico:** os manifestos anteriores estão em `referencias/LAB04S01_historico/` e `referencias/LAB03S03_historico/`.

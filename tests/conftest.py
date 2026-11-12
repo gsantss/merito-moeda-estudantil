@@ -1,8 +1,9 @@
 import os
 
-# Os testes nunca usam o banco de desenvolvimento nem disparam as tarefas automáticas:
-# a aplicação sobe com um SQLite em memória descartável e cada teste recebe um banco próprio.
+# Os testes nunca usam o banco de desenvolvimento: a aplicação sobe com um SQLite
+# em memória descartável, e cada teste recebe um banco próprio (fixture "ambiente").
 os.environ['DATABASE_URL'] = 'sqlite://'
+os.environ['AMBIENTE'] = 'local'
 os.environ['TAREFAS_AUTOMATICAS'] = '0'
 
 import pytest
@@ -10,17 +11,32 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+from app.config import normalizar_url_banco
 from app.main import app
 from app.database import Base, get_db
 from app.models import Instituicao, Professor, Usuario, Carteira
 from app.security import hash_senha
 
-@pytest.fixture
-def ambiente():
+# Opcional: TEST_DATABASE_URL=postgresql://... roda a suíte contra o PostgreSQL (mesmo banco da nuvem).
+# ATENÇÃO: todas as tabelas desse banco são apagadas e recriadas a cada teste.
+URL_TESTE = os.getenv('TEST_DATABASE_URL')
+
+
+def criar_engine_teste():
+    if URL_TESTE:
+        engine = create_engine(normalizar_url_banco(URL_TESTE))
+        Base.metadata.drop_all(bind=engine)
+        return engine
     engine = create_engine('sqlite://', connect_args={'check_same_thread': False}, poolclass=StaticPool)
     @event.listens_for(engine, 'connect')
     def pragma(dbapi_conn, conn_record):
         dbapi_conn.execute('PRAGMA foreign_keys=ON')
+    return engine
+
+
+@pytest.fixture
+def ambiente():
+    engine = criar_engine_teste()
     Base.metadata.create_all(bind=engine)
     Session = sessionmaker(engine, expire_on_commit=False)
     with Session() as db:
@@ -42,6 +58,8 @@ def ambiente():
             yield client, id_inst, id_outra, Session
     finally:
         app.dependency_overrides.clear()
+        if URL_TESTE:
+            Base.metadata.drop_all(bind=engine)
         engine.dispose()
 
 @pytest.fixture

@@ -1,5 +1,31 @@
-{% extends 'base.html' %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#12344d">
+  <meta name="description" content="Sistema de Moeda Estudantil da PUC Minas. Laboratório 4.">
+  <title>Meu painel · Mérito+ | Moeda Estudantil</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <script src="/static/js/cliente-api.js" defer></script>
+  <script src="/static/js/app.js" defer></script>
+  <script src="/static/js/sprint03.js" defer></script>
+</head>
+<body data-page="painel">
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="/" aria-label="Mérito+, página inicial"><span class="brand-mark" aria-hidden="true">✦</span><span>Mérito<span class="brand-plus">+</span><small>MOEDA ESTUDANTIL</small></span></a>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <a href="/" class="nav-home">Início</a>
+        <a href="/parceiros" class="nav-partners">Parceiros</a>
+        <a href="/vantagens" class="nav-catalog">Vantagens</a>
+        <a href="/painel" class="nav-panel" hidden>Meu painel</a>
+        <a href="/login" class="nav-login btn btn-outline btn-sm">Entrar</a>
+        <button type="button" class="nav-logout btn btn-outline btn-sm" hidden>Sair <span aria-hidden="true">↗</span></button>
+      </nav>
+    </div>
+  </header>
+  <main id="conteudo">
 <section class="page-shell dashboard"><div class="wrap"><div class="dash-header"><div><div class="eyebrow">ÁREA RESTRITA</div><h1 id="dash-title">Meu painel</h1><p id="dash-subtitle">Consultando seu cadastro...</p></div><span class="profile-tag" id="dash-role">—</span></div>
  <div class="dash-grid"><div class="dash-main"><section class="panel"><div class="panel-header"><div><h2>Meu cadastro</h2><p>Consulte e atualize suas informações.</p></div><span class="panel-symbol">✎</span></div><form id="form-perfil" class="form-grid"><div class="full skeleton">Carregando suas informações...</div></form></section>
  <section class="panel" id="operations-panel" hidden>
@@ -13,4 +39,8 @@
  <section class="panel"><div class="eyebrow">ACESSO</div><h3 id="access-login">—</h3><p class="muted" id="access-type">—</p></section>
  <section class="panel" id="professor-list" hidden><div class="eyebrow">MINHA INSTITUIÇÃO</div><h3>Estudantes vinculados</h3><div id="lista-alunos" class="compact-list"></div></section></aside></div>
 </div></section>
-{% endblock %}
+</main>
+  <footer class="site-footer"><div class="wrap footer-inner"><div><strong>✦ Mérito+</strong> <span class="muted">· Projeto acadêmico — PUC Minas</span></div><span>LAB04 · Release 2 · 2026</span></div></footer>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

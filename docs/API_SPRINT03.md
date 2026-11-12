@@ -4,6 +4,7 @@ Documentação interativa em `http://127.0.0.1:8000/docs`. Todas as rotas de esc
 
 | Método | Endpoint | Permissão | Resultado |
 | --- | --- | --- | --- |
+| GET | `/api/saude` | Pública | Verificação de saúde da API e do banco (usada pelo Render, LAB04S02) |
 | GET | `/api/sessao` | Pública | Sessão e CSRF |
 | POST | `/api/auth/login` | Pública + CSRF | Sessão do perfil |
 | POST | `/api/auth/logout` | Sessão + CSRF | Encerrar sessão |

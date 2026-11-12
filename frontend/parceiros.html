@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#12344d">
-  <meta name="description" content="Sistema de Moeda Estudantil da PUC Minas. Laboratório 3, Sprint 03.">
-  <title>{{ titulo }} · Mérito+ | Moeda Estudantil</title>
-  <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
-  <script src="{{ url_for('static', path='/js/app.js') }}" defer></script>
-  <script src="{{ url_for('static', path='/js/sprint03.js') }}" defer></script>
+  <meta name="description" content="Sistema de Moeda Estudantil da PUC Minas. Laboratório 4.">
+  <title>Empresas parceiras · Mérito+ | Moeda Estudantil</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <script src="/static/js/cliente-api.js" defer></script>
+  <script src="/static/js/app.js" defer></script>
+  <script src="/static/js/sprint03.js" defer></script>
 </head>
-<body data-page="{{ pagina }}">
+<body data-page="parceiros">
   <header class="topbar">
     <div class="wrap topbar-inner">
       <a class="brand" href="/" aria-label="Mérito+, página inicial"><span class="brand-mark" aria-hidden="true">✦</span><span>Mérito<span class="brand-plus">+</span><small>MOEDA ESTUDANTIL</small></span></a>
@@ -24,8 +25,10 @@
       </nav>
     </div>
   </header>
-  <main id="conteudo">{% block content %}{% endblock %}</main>
-  <footer class="site-footer"><div class="wrap footer-inner"><div><strong>✦ Mérito+</strong> <span class="muted">· Projeto acadêmico — PUC Minas</span></div><span>LAB03S03 · Sprint 03 · 2026</span></div></footer>
+  <main id="conteudo">
+<section class="page-shell"><div class="wrap"><div class="page-intro"><div class="eyebrow">NOSSA REDE</div><h1>Empresas que acreditam no mérito.</h1><p>Conheça as empresas parceiras cadastradas na plataforma.</p><a href="/cadastro/empresa" class="btn btn-primary">Cadastrar minha empresa <span>→</span></a></div><div class="cards three" id="lista-empresas"><article class="feature">Carregando empresas...</article></div></div></section>
+</main>
+  <footer class="site-footer"><div class="wrap footer-inner"><div><strong>✦ Mérito+</strong> <span class="muted">· Projeto acadêmico — PUC Minas</span></div><span>LAB04 · Release 2 · 2026</span></div></footer>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

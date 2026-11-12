@@ -1,4 +1,4 @@
-/** Sprint 03: funções finais de domínio na UI. Reusa o cliente API e a sessão do app.js. */
+/** Funções de domínio na UI. Usa o cliente compartilhado (cliente-api.js) e a sessão do app.js. */
 (() => {
   'use strict';
   const esc = x => String(x ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -7,20 +7,18 @@
   let state = {};
   const msg = (s, error=false) => {const t=$('#toast');t.textContent=s;t.className='toast '+(error?'error':'success');t.hidden=false;setTimeout(()=>t.hidden=true,6000);};
   async function api(url, opt={}) {
-    const headers={...(opt.headers||{})};
-    if(opt.body) headers['Content-Type']='application/json';
-    if((opt.method||'GET').toUpperCase()!=='GET')headers['X-CSRF-Token']=state.csrf_token;
-    const r=await fetch(url,{...opt,headers,credentials:'same-origin'});
-    const d=await r.json();
-    if(!r.ok)throw new Error(typeof d.detail==='string'?d.detail:'Dados inválidos. Verifique os campos.');
-    return d;
+    const {ok, dados}=await window.MeritoApi.requisitar(url,{...opt,csrf:state.csrf_token});
+    if(!ok)throw new Error(typeof dados.detail==='string'?dados.detail:'Dados inválidos. Verifique os campos.');
+    return dados;
   }
   const post=(url,data,method='POST')=>api(url,{method,body:JSON.stringify(data)});
   const formData=f=>Object.fromEntries(new FormData(f).entries());
-  const card=v=>`<article class="feature perk"><img class="perk-image" src="${esc(v.foto_url)}" alt="Foto: ${esc(v.titulo)}" loading="lazy" onerror="this.style.display='none'"/><div class="perk-body"><small>${esc(v.empresa||'Empresa parceira')}</small><h3>${esc(v.titulo)}</h3><p>${esc(v.descricao)}</p><strong class="coins">✦ ${fmt(v.custo)} moedas</strong> ${state.perfil==='aluno' ? `<button type="button" class="btn btn-primary redeem-btn" data-id="${esc(v.id)}">Resgatar →</button>` : '<a href="/login" class="link-arrow">Entre para resgatar →</a>'}</div></article>`;
+  const card=v=>`<article class="feature perk"><img class="perk-image" src="${esc(v.foto_url)}" alt="Foto: ${esc(v.titulo)}" loading="lazy"/><div class="perk-body"><small>${esc(v.empresa||'Empresa parceira')}</small><h3>${esc(v.titulo)}</h3><p>${esc(v.descricao)}</p><strong class="coins">✦ ${fmt(v.custo)} moedas</strong> ${state.perfil==='aluno' ? `<button type="button" class="btn btn-primary redeem-btn" data-id="${esc(v.id)}">Resgatar →</button>` : '<a href="/login" class="link-arrow">Entre para resgatar →</a>'}</div></article>`;
   async function catalog() {
     const list=await api('/api/vantagens');
     $('#catalog-list').innerHTML=list.length?list.map(card).join(''):'<p class="empty">Ainda não existem vantagens ativas.</p>';
+    // Esconde fotos que não carregam (antes era um onerror inline, bloqueado pela política de segurança).
+    document.querySelectorAll('.perk-image').forEach(img=>img.addEventListener('error',()=>{img.style.display='none';}));
     document.querySelectorAll('.redeem-btn').forEach(b=>b.addEventListener('click',()=>redeem(b.dataset.id)));
   }
   async function redeem(id) {

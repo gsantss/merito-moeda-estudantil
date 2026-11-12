@@ -1,4 +1,6 @@
-# Arquitetura MVC, dados e persistência — LAB03S03, atualizado no LAB04S01
+# Arquitetura MVC, dados e persistência — LAB03S03, atualizado no LAB04S01 e no LAB04S02
+
+> **LAB04S02:** a interface (View) foi separada em `frontend/` e publicada na Vercel; a API (Controller + Model) roda no Render com PostgreSQL 16. Regras de negócio, modelos e controllers não mudaram. Detalhes em [`IMPLANTACAO.md`](IMPLANTACAO.md), diagrama de implantação em `docs/diagramas/implantacao.*` e arquitetura atualizada em `docs/diagramas/arquitetura_lab04.*`.
 
 > **LAB04S01:** o crédito semestral e o envio da fila de e-mails passaram a ser tarefas automáticas do servidor (`app/tarefas.py`, `app/services/notificacoes.py`). As interações entre View, Controllers, Model e banco estão nos diagramas de sequência (`docs/diagramas/sequencia/`).
 
@@ -8,15 +10,15 @@ O Anexo C da S01 separa **View / Controller / Model / Infraestrutura**. A S02 im
 
 | Camada MVC | Componentes no repositório | Responsabilidade |
 | --- | --- | --- |
-| View | `app/templates/`, `app/static/js/`, `app/static/css/` | Telas responsivas e formulários; chamadas `fetch` com sessão e CSRF |
+| View | `frontend/` (páginas HTML), `frontend/static/js/`, `frontend/static/css/` | Telas responsivas e formulários; chamadas `fetch` com sessão e CSRF pelo cliente único `cliente-api.js`. Na nuvem, servidas pela Vercel (até o LAB04S01: templates Jinja2 em `app/templates/`) |
 | Controller | `app/routers/` | Rotas HTTP, perfis, autenticação, DTO de entrada, respostas e status |
 | Model / Services | `app/models.py`, `app/schemas*.py`, `app/services/` | Entidades, validação de CPF/CNPJ, saldos, débitos, cupons e regras de negócio |
 | Acesso a dados | `app/repositories/`, `app/database.py`, SQLAlchemy ORM | Consultas com `select()`, operações condicionais com `update()`, commit/rollback |
-| Infraestrutura | SQLite, `app/tarefas.py`, `app/services/notificacoes.py`, `scripts/` | Persistência ACID, crédito semestral e fila SMTP automáticos no servidor, scripts manuais |
+| Infraestrutura | SQLite (local) ou PostgreSQL 16 (Render), `app/tarefas.py`, `app/services/notificacoes.py`, `scripts/` | Persistência ACID, crédito semestral e fila SMTP automáticos no servidor, scripts manuais |
 
 ## Modelo Entidade-Relacionamento
 
-O modelo ER da S02 permanece válido, com 12 tabelas, pois a S02 já antecipou os dados necessários às funcionalidades da S03: `instituicoes`, `usuarios`, `alunos`, `professores`, `empresas_parceiras`, `carteiras`, `transacoes_moedas`, `creditos_semestrais`, `vantagens`, `resgates`, `cupons` e `notificacoes`. Veja `docs/diagramas/modelo_er.pdf` e `docs/esquema_sqlite.sql`.
+O modelo ER da S02 permanece válido, com 12 tabelas, pois a S02 já antecipou os dados necessários às funcionalidades da S03: `instituicoes`, `usuarios`, `alunos`, `professores`, `empresas_parceiras`, `carteiras`, `transacoes_moedas`, `creditos_semestrais`, `vantagens`, `resgates`, `cupons` e `notificacoes`. Veja `docs/diagramas/modelo_er.pdf`, `docs/esquema_sqlite.sql` e, para a nuvem, `docs/esquema_postgresql.sql` (mesmas 12 tabelas e restrições).
 
 O relacionamento de usuário para perfil é 1:0..1 e determinado pelo campo `perfil`; alunos/professores possuem 1 carteira; empresas têm 0..* vantagens; cada resgate pertence a 1 aluno, 1 vantagem e gera 1 cupom; cada transação financeira é persistida no extrato. Há unicidade por CPF, login, e-mail e código de cupom, e por par `(professor_id, semestre)`.
 
@@ -30,13 +32,13 @@ O relacionamento de usuário para perfil é 1:0..1 e determinado pelo campo `per
 
 ## Estratégia de persistência
 
-- SGBD: SQLite para executar localmente e demonstrar sem dependência externa; ORM: SQLAlchemy 2.x.
+- SGBD: SQLite para executar localmente sem dependência externa; PostgreSQL 16 na nuvem (driver `psycopg`, URL convertida em `app/config.py`). ORM: SQLAlchemy 2.x, o mesmo código para os dois bancos; a suíte de testes roda nos dois.
 - `Base.metadata.create_all()` para inicializar banco vazio; não substitui migrações em ambiente produtivo.
 - Chaves primárias UUID string, `ForeignKey` e `CheckConstraint`, além de unicidade no banco.
 - `PRAGMA foreign_keys=ON` por conexão, `busy_timeout` para espera de bloqueio, e `Session` por requisição.
 - Senhas em PBKDF2-SHA256 com salt, cookie assinado HTTPOnly, token anti-CSRF e checagem de RBAC no backend.
-- O banco local de demonstração não representa um serviço pronto para produção. Não há migration de dados de produção, monitoramento centralizado, provedor real configurado ou implantação em nuvem.
+- O banco local de demonstração não representa um serviço pronto para produção. Não há migrations de dados nem monitoramento centralizado. A implantação em nuvem (LAB04S02) usa os planos gratuitos do Render e da Vercel, com os limites descritos em `IMPLANTACAO.md`.
 
 ## Operação e segurança
 
-Antes de publicar, definir `SECRET_KEY` próprio e `SESSION_HTTPS_ONLY=1`, ativar TLS, atualizar configurações SMTP, adicionar rate limiting, recuperação de senha e políticas de consentimento/privacidade. O usuário possui autorização para seus próprios cadastros; o professor visualiza apenas alunos de sua instituição e o parceiro somente suas vantagens e cupons.
+Na nuvem, `SECRET_KEY` e a senha de demonstração são gerados pelo Render, `SESSION_HTTPS_ONLY=1` e TLS são obrigatórios, e a API se recusa a iniciar com valores de demonstração (`validar_configuracao()` em `app/config.py`). Continuam pendentes para um uso real: rate limiting, recuperação de senha e políticas de consentimento/privacidade. O usuário possui autorização para seus próprios cadastros; o professor visualiza apenas alunos de sua instituição e o parceiro somente suas vantagens e cupons.

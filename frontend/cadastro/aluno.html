@@ -1,5 +1,31 @@
-{% extends 'base.html' %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#12344d">
+  <meta name="description" content="Sistema de Moeda Estudantil da PUC Minas. Laboratório 4.">
+  <title>Cadastrar aluno · Mérito+ | Moeda Estudantil</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <script src="/static/js/cliente-api.js" defer></script>
+  <script src="/static/js/app.js" defer></script>
+  <script src="/static/js/sprint03.js" defer></script>
+</head>
+<body data-page="cadastro-aluno">
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="/" aria-label="Mérito+, página inicial"><span class="brand-mark" aria-hidden="true">✦</span><span>Mérito<span class="brand-plus">+</span><small>MOEDA ESTUDANTIL</small></span></a>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <a href="/" class="nav-home">Início</a>
+        <a href="/parceiros" class="nav-partners">Parceiros</a>
+        <a href="/vantagens" class="nav-catalog">Vantagens</a>
+        <a href="/painel" class="nav-panel" hidden>Meu painel</a>
+        <a href="/login" class="nav-login btn btn-outline btn-sm">Entrar</a>
+        <button type="button" class="nav-logout btn btn-outline btn-sm" hidden>Sair <span aria-hidden="true">↗</span></button>
+      </nav>
+    </div>
+  </header>
+  <main id="conteudo">
 <section class="page-shell"><div class="wrap form-layout">
  <aside class="form-aside"><a href="/" class="back-link">← Voltar ao início</a><div class="eyebrow">CONTA DE ESTUDANTE</div><h1>Seu mérito começa aqui.</h1><p>Crie seu cadastro, escolha uma instituição parceira e faça parte do sistema de reconhecimento estudantil.</p><div class="aside-card"><span class="badge-round">✧</span><div><strong>Um passo de cada vez.</strong><small>Seus dados ficam associados à sua própria conta e instituição.</small></div></div></aside>
  <div class="form-card"><div class="form-heading"><div class="mini-step">01 <span>/</span> CADASTRO</div><h2>Dados do estudante</h2><p>Preencha os campos abaixo para criar sua conta.</p></div>
@@ -17,4 +43,8 @@
   <div class="full"><button class="btn btn-primary btn-block" type="submit">Criar minha conta <span>→</span></button><p class="form-footnote">Já possui uma conta? <a href="/login">Entre aqui</a></p></div>
  </form></div>
 </div></section>
-{% endblock %}
+</main>
+  <footer class="site-footer"><div class="wrap footer-inner"><div><strong>✦ Mérito+</strong> <span class="muted">· Projeto acadêmico — PUC Minas</span></div><span>LAB04 · Release 2 · 2026</span></div></footer>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

@@ -1,0 +1,30 @@
+digraph MVC {
+  graph [rankdir=LR, bgcolor="white", pad=.35, ranksep=.54, nodesep=.42, fontname="DejaVu Sans", label="Mérito+ · Arquitetura MVC na nuvem / LAB04S02", labelloc=t, fontsize=19, fontcolor="#15384d"];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=11, color="#d0e1e5", penwidth=1.2, fillcolor="#f6fafb", fontcolor="#12344d", margin=".15,.13"];
+  edge [color="#648c92", arrowsize=.7, penwidth=1.5];
+  subgraph cluster_client { label="VISÃO · frontend/ (HTML, CSS, JS) · Vercel"; labeljust=l; color="#d0e7e5"; style="rounded,filled"; fillcolor="#f0faf8";
+    navegador [label="Navegador\nCadastro / Login / Painel\nCatálogo / Resgate", fillcolor="#dff5ed"];
+    cliente [label="cliente-api.js\nfetch /api/* + CSRF\nrepetição no 'despertar'", fillcolor="#dff5ed"];
+    proxy [label="Rewrite /api/* (vercel.json)\nmesma origem para o navegador", fillcolor="#e9f1fb"];
+  }
+  subgraph cluster_controller {label="CONTROLLERS · FastAPI · Render"; labeljust=l; color="#d7e6ee"; style="rounded,filled"; fillcolor="#f1f7fc";
+    rotas [label="/api/auth · /api/alunos\n/api/empresas · /api/vantagens\n/api/distribuicoes · /api/resgates\n/api/extrato · /api/cupons · /api/saude", fillcolor="#e5f2fa"];
+    guard [label="Sessões HTTPOnly\nCSRF + RBAC", fillcolor="#fff4df"];
+  }
+  subgraph cluster_domain {label="MODEL · Serviços de domínio"; labeljust=l; color="#cce4d9"; style="rounded,filled"; fillcolor="#effaf4";
+    cadastro [label="Cadastro e edição\nAluno / Empresa"];
+    financeira [label="Crédito semestral\nDistribuição atômica\nResgate + Cupom", fillcolor="#d6f0e3"];
+    outbox [label="Notificações em fila\n(app/services/notificacoes.py)"];
+  }
+  subgraph cluster_store {label="PERSISTÊNCIA · Repositórios / ORM"; labeljust=l; color="#eadbb6"; style="rounded,filled"; fillcolor="#fffaf0";
+    orm [label="SQLAlchemy · Session\nCommit / Rollback / Constraints", fillcolor="#fff0d0"];
+    db [shape=cylinder, label="PostgreSQL 16 (Render)\nSQLite no ambiente local\n12 tabelas", fillcolor="#ffe6ab"];
+  }
+  subgraph cluster_external {label="TAREFAS E INTEGRAÇÕES"; labeljust=l; color="#d5d7ed"; style="rounded,filled"; fillcolor="#f7f6fd";
+    job [label="Tarefas automáticas (app/tarefas.py)\ncrédito do semestre atual\n+ envio da fila de e-mails"];
+    mail [label="Servidor SMTP\n(opcional)", fillcolor="#f1eefc"];
+  }
+  navegador -> cliente; cliente -> proxy [label="HTTPS", fontsize=9]; proxy -> rotas [label="HTTPS", fontsize=9]; rotas -> guard; guard -> cadastro; guard -> financeira;
+  cadastro -> orm; financeira -> orm; financeira -> outbox;
+  outbox -> orm; orm -> db; job -> financeira; job -> outbox; outbox -> mail [label="SMTP + TLS", fontsize=9];
+}
