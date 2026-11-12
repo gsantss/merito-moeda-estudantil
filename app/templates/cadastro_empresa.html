@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="page-shell"><div class="wrap form-layout">
+ <aside class="form-aside"><a href="/" class="back-link">← Voltar ao início</a><div class="eyebrow">PARCERIA</div><h1>Conquistas que geram oportunidades.</h1><p>Sua empresa pode fazer parte da rede que valoriza estudantes e aproxima o aprendizado da comunidade.</p><div class="aside-card"><span class="badge-round">✦</span><div><strong>Empresas fazem a diferença.</strong><small>Cadastre suas vantagens e confira os cupons de seus clientes pelo painel.</small></div></div></aside>
+ <div class="form-card"><div class="form-heading"><div class="mini-step">02 <span>/</span> CADASTRO</div><h2>Dados da empresa</h2><p>Crie seu perfil de empresa parceira.</p></div>
+ <form id="form-empresa" class="form-grid" novalidate>
+  <label class="field full">Nome da empresa<input name="nome" required minlength="2" maxlength="160" placeholder="Razão social ou nome comercial"></label>
+  <label class="field">E-mail para contato<input name="email_contato" type="email" required placeholder="contato@empresa.com"></label>
+  <label class="field">CNPJ (opcional)<input name="cnpj" maxlength="18" inputmode="numeric" placeholder="00.000.000/0000-00"></label>
+  <label class="field full">Descrição (opcional)<textarea name="descricao" rows="3" maxlength="1000" placeholder="Conte um pouco sobre a parceria..."></textarea></label>
+  <div class="form-separator full"><span>Dados de acesso</span></div>
+  <label class="field">Login<input name="login" required minlength="3" maxlength="120" autocomplete="username" placeholder="Escolha um login"></label>
+  <label class="field">Senha<input name="senha" type="password" minlength="8" required autocomplete="new-password" placeholder="Mínimo de 8 caracteres"></label>
+  <div class="full"><button class="btn btn-primary btn-block" type="submit">Cadastrar minha empresa <span>→</span></button><p class="form-footnote">Já é parceira? <a href="/login">Acesse sua conta</a></p></div>
+ </form></div>
+</div></section>
+{% endblock %}

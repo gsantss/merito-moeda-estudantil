@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="page-shell dashboard"><div class="wrap"><div class="dash-header"><div><div class="eyebrow">ÁREA RESTRITA</div><h1 id="dash-title">Meu painel</h1><p id="dash-subtitle">Consultando seu cadastro...</p></div><span class="profile-tag" id="dash-role">—</span></div>
+ <div class="dash-grid"><div class="dash-main"><section class="panel"><div class="panel-header"><div><h2>Meu cadastro</h2><p>Consulte e atualize suas informações.</p></div><span class="panel-symbol">✎</span></div><form id="form-perfil" class="form-grid"><div class="full skeleton">Carregando suas informações...</div></form></section>
+ <section class="panel" id="operations-panel" hidden>
+ <div class="panel-header"><div><h2 id="operations-title">Operações</h2><p id="operations-subtitle">Gerencie moedas e vantagens.</p></div><span class="panel-symbol">✦</span></div>
+ <div id="operations-content"></div>
+ </section>
+ <section class="panel" id="extrato-panel" hidden><div class="panel-header"><div><h2>Histórico de movimentações</h2><p>Créditos, distribuições e resgates registrados.</p></div></div><div id="extrato-list" class="compact-list"></div></section>
+ <section class="panel" id="cupons-panel" hidden><div class="panel-header"><div><h2>Meus cupons</h2><p>Apresente o código na empresa parceira.</p></div></div><div id="cupons-list" class="compact-list"></div></section>
+ <section class="panel danger-panel"><div><h3>Encerrar meu cadastro</h3><p>Cadastros sem vínculos podem ser excluídos; contas com histórico financeiro ou vantagens devem ser desativadas para preservar a auditoria.</p></div><button id="delete-account" type="button" class="btn btn-danger">Excluir conta</button></section></div>
+ <aside class="dash-side"><section class="panel wallet-panel"><div class="eyebrow">MINHA CARTEIRA</div><div class="wallet-balance" id="wallet-balance">—</div><div class="muted">moedas disponíveis</div><div class="wallet-small-note">Créditos semestrais, transferências e resgates no seu extrato.</div></section>
+ <section class="panel"><div class="eyebrow">ACESSO</div><h3 id="access-login">—</h3><p class="muted" id="access-type">—</p></section>
+ <section class="panel" id="professor-list" hidden><div class="eyebrow">MINHA INSTITUIÇÃO</div><h3>Estudantes vinculados</h3><div id="lista-alunos" class="compact-list"></div></section></aside></div>
+</div></section>
+{% endblock %}

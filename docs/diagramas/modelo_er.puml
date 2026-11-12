@@ -1,0 +1,129 @@
+@startuml
+' Sistema de Moeda Estudantil — LAB03S02
+' Modelo Entidade-Relacionamento compatível com a generalização UsuarioSistema (LAB03S01)
+hide circle
+skinparam linetype ortho
+skinparam entity {
+ BackgroundColor #F7FBFC
+ BorderColor #37667B
+ FontColor #12344D
+}
+skinparam shadowing false
+left to right direction
+
+entity "INSTITUICOES" as instituicoes {
+  * id : VARCHAR(36) <<PK>>
+  --
+  * nome : VARCHAR(150) <<UQ>>
+  * ativa : BOOLEAN
+}
+entity "USUARIOS" as usuarios {
+  * id : VARCHAR(36) <<PK>>
+  --
+  * login : VARCHAR(120) <<UQ>>
+  * senha_hash : VARCHAR(250)
+  * perfil : aluno | professor | empresa
+  * ativo : BOOLEAN
+  * criado_em : DATETIME
+}
+entity "ALUNOS" as alunos {
+  * id : VARCHAR(36) <<PK,FK>>
+  --
+  * instituicao_id <<FK>>
+  * nome / email <<UQ>>
+  * cpf <<UQ>> / rg
+  * endereco / curso
+}
+entity "PROFESSORES" as professores {
+  * id : VARCHAR(36) <<PK,FK>>
+  --
+  * instituicao_id <<FK>>
+  * nome / cpf <<UQ>>
+  * departamento
+}
+entity "EMPRESAS_PARCEIRAS" as empresas {
+  * id : VARCHAR(36) <<PK,FK>>
+  --
+  * nome
+  * email_contato <<UQ>>
+  cnpj <<UQ>> / descricao
+}
+entity "CARTEIRAS" as carteiras {
+  * id : VARCHAR(36) <<PK>>
+  --
+  * usuario_id <<FK,UQ>>
+  * saldo : INTEGER >= 0
+  * atualizada_em
+}
+entity "TRANSACOES_MOEDAS" as transacoes {
+  * id : VARCHAR(36) <<PK>>
+  --
+  origem_carteira_id <<FK>>
+  destino_carteira_id <<FK>>
+  * tipo / quantidade > 0
+  motivo / data_hora / semestre
+}
+entity "CREDITOS_SEMESTRAIS" as creditos {
+  * id : VARCHAR(36) <<PK>>
+  --
+  * professor_id <<FK>>
+  * semestre : VARCHAR(7)
+  * transacao_id <<FK,UQ>>
+  (professor_id,semestre) <<UQ>>
+}
+entity "VANTAGENS" as vantagens {
+  * id : VARCHAR(36) <<PK>>
+  --
+  * empresa_id <<FK>>
+  * titulo / descricao / foto_url
+  * custo : INTEGER > 0
+  * ativa : BOOLEAN
+}
+entity "RESGATES" as resgates {
+  * id : VARCHAR(36) <<PK>>
+  --
+  * aluno_id <<FK>>
+  * vantagem_id <<FK>>
+  * transacao_id <<FK,UQ>>
+  * custo_aplicado > 0
+}
+entity "CUPONS" as cupons {
+  * id : VARCHAR(36) <<PK>>
+  --
+  * resgate_id <<FK,UQ>>
+  * codigo <<UQ>>
+  * emitido_em / utilizado_em
+}
+entity "NOTIFICACOES" as notificacoes {
+  * id : VARCHAR(36) <<PK>>
+  --
+  * destinatario / assunto / corpo
+  * status / tentativas
+  transacao_id <<FK>>
+  cupom_id <<FK>>
+}
+
+instituicoes ||--o{ alunos : matricula
+instituicoes ||--o{ professores : vinculo
+usuarios ||--o| alunos : especializa
+usuarios ||--o| professores : especializa
+usuarios ||--o| empresas : especializa
+usuarios ||--o| carteiras : possui
+carteiras |o--o{ transacoes : origem
+carteiras |o--o{ transacoes : destino
+professores ||--o{ creditos : recebe
+transacoes ||--o| creditos : registra
+empresas ||--o{ vantagens : oferece
+alunos ||--o{ resgates : solicita
+vantagens ||--o{ resgates : resgatada
+transacoes ||--o| resgates : debita
+resgates ||--|| cupons : gera
+transacoes |o--o{ notificacoes : notifica
+cupons |o--o{ notificacoes : informa
+
+note bottom of usuarios
+  Especialização lógica exclusiva:
+  cada usuário tem um único perfil.
+  A aplicação garante o subtipo correspondente.
+end note
+@enduml

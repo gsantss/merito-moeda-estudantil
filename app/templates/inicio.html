@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="eyebrow"><span class="pulse"></span> SISTEMA DE RECONHECIMENTO ESTUDANTIL</div>
+      <h1>Boas atitudes merecem <em>reconhecimento.</em></h1>
+      <p>Uma plataforma que conecta estudantes, professores e empresas parceiras para valorizar cada conquista acadêmica.</p>
+      <div class="actions"><a href="/cadastro/aluno" class="btn btn-primary btn-lg">Sou estudante <span>→</span></a><a href="/cadastro/empresa" class="btn btn-hero-secondary btn-lg">Represento uma empresa <span>↗</span></a></div>
+      <div class="hero-note"><span>✓</span> Cadastro simples <span>·</span> Instituições pré-cadastradas <span>·</span> Acesso seguro</div>
+    </div>
+    <div class="hero-art" aria-label="Ilustração de carteira com moedas">
+       <div class="orbit orbit-1"></div><div class="orbit orbit-2"></div>
+       <div class="floating-token t1">✦</div><div class="floating-token t2">★</div><div class="floating-token t3">+</div>
+       <div class="wallet"><div class="wallet-top"><span>CARTEIRA DE MÉRITO</span><span>✧</span></div><div class="wallet-value">1.000<span> moedas</span></div><div class="wallet-bottom"><span>SEU ESFORÇO VALE MAIS</span><span class="wallet-dots">● ● ●</span></div></div>
+       <div class="hero-float"><span>↗</span><div><strong>Reconhecimento</strong><small>que faz a diferença</small></div></div>
+    </div>
+  </div>
+</section>
+<section class="wrap section"><div class="section-label">COMO FUNCIONA</div><div class="section-heading"><h2>Uma jornada de conquistas.</h2><p>Três perfis, um mesmo propósito: reconhecer o mérito.</p></div>
+ <div class="cards three">
+  <article class="feature"><span class="feature-icon navy">01</span><h3>Estudantes</h3><p>Cadastre-se na sua instituição de ensino e receba moedas por mérito, acompanhe seu extrato e resgate vantagens.</p><a href="/cadastro/aluno" class="link-arrow">Criar conta <span>→</span></a></article>
+  <article class="feature"><span class="feature-icon teal">02</span><h3>Professores</h3><p>Contas vinculadas à instituição, com créditos semestrais para premiar participação e boas atitudes.</p><a href="/login" class="link-arrow">Acessar conta <span>→</span></a></article>
+  <article class="feature"><span class="feature-icon gold">03</span><h3>Empresas parceiras</h3><p>Cadastre vantagens e entregue produtos e descontos aos estudantes por cupons.</p><a href="/cadastro/empresa" class="link-arrow">Seja parceiro <span>→</span></a></article>
+ </div>
+ <div class="notice"><strong>Sprint 03 — protótipo final.</strong> Cadastros completos, autenticação, extrato, créditos semestrais, distribuição, catálogo, resgate, cupons e processamento de notificações por SMTP configurável.</div>
+</section>
+{% endblock %}

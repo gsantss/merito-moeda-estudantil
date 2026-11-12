@@ -1,0 +1,107 @@
+erDiagram
+    INSTITUICOES ||--o{ ALUNOS : matricula
+    INSTITUICOES ||--o{ PROFESSORES : vincula
+    USUARIOS ||--o| ALUNOS : especializa
+    USUARIOS ||--o| PROFESSORES : especializa
+    USUARIOS ||--o| EMPRESAS_PARCEIRAS : especializa
+    USUARIOS ||--o| CARTEIRAS : possui
+    CARTEIRAS |o--o{ TRANSACOES_MOEDAS : origem
+    CARTEIRAS |o--o{ TRANSACOES_MOEDAS : destino
+    PROFESSORES ||--o{ CREDITOS_SEMESTRAIS : recebe
+    TRANSACOES_MOEDAS ||--o| CREDITOS_SEMESTRAIS : identifica
+    EMPRESAS_PARCEIRAS ||--o{ VANTAGENS : oferece
+    ALUNOS ||--o{ RESGATES : faz
+    VANTAGENS ||--o{ RESGATES : contem
+    TRANSACOES_MOEDAS ||--o| RESGATES : debito
+    RESGATES ||--|| CUPONS : gera
+    TRANSACOES_MOEDAS |o--o{ NOTIFICACOES : dispara
+    CUPONS |o--o{ NOTIFICACOES : comunicado
+
+    INSTITUICOES {
+        string id PK
+        string nome UK
+        boolean ativa
+    }
+    USUARIOS {
+        string id PK
+        string login UK
+        string senha_hash
+        string perfil
+        boolean ativo
+    }
+    ALUNOS {
+        string id PK,FK
+        string instituicao_id FK
+        string nome
+        string email UK
+        string cpf UK
+        string rg
+        string endereco
+        string curso
+    }
+    PROFESSORES {
+        string id PK,FK
+        string instituicao_id FK
+        string nome
+        string cpf UK
+        string departamento
+    }
+    EMPRESAS_PARCEIRAS {
+        string id PK,FK
+        string nome
+        string email_contato UK
+        string cnpj UK
+        string descricao
+    }
+    CARTEIRAS {
+        string id PK
+        string usuario_id FK,UK
+        int saldo
+    }
+    TRANSACOES_MOEDAS {
+        string id PK
+        string origem_carteira_id FK
+        string destino_carteira_id FK
+        string tipo
+        int quantidade
+        string motivo
+        datetime data_hora
+        string semestre
+    }
+    CREDITOS_SEMESTRAIS {
+        string id PK
+        string professor_id FK
+        string semestre
+        string transacao_id FK,UK
+    }
+    VANTAGENS {
+        string id PK
+        string empresa_id FK
+        string titulo
+        string descricao
+        string foto_url
+        int custo
+        boolean ativa
+    }
+    RESGATES {
+        string id PK
+        string aluno_id FK
+        string vantagem_id FK
+        string transacao_id FK,UK
+        int custo_aplicado
+    }
+    CUPONS {
+        string id PK
+        string resgate_id FK,UK
+        string codigo UK
+        datetime emitido_em
+        datetime utilizado_em
+    }
+    NOTIFICACOES {
+        string id PK
+        string transacao_id FK
+        string cupom_id FK
+        string destinatario
+        string status
+        int tentativas
+    }

@@ -1,0 +1,28 @@
+digraph MVC {
+  graph [rankdir=LR, bgcolor="white", pad=.35, ranksep=.54, nodesep=.42, fontname="DejaVu Sans", label="Mérito+ · Arquitetura final MVC / LAB03S03", labelloc=t, fontsize=19, fontcolor="#15384d"];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=11, color="#d0e1e5", penwidth=1.2, fillcolor="#f6fafb", fontcolor="#12344d", margin=".15,.13"];
+  edge [color="#648c92", arrowsize=.7, penwidth=1.5];
+  subgraph cluster_client { label="VISÃO · Jinja2 / JS / CSS"; labeljust=l; color="#d0e7e5"; style="rounded,filled"; fillcolor="#f0faf8";
+    navegador [label="Navegador\nCadastro / Login / Painel\nCatálogo / Resgate", fillcolor="#dff5ed"];
+  }
+  subgraph cluster_controller {label="CONTROLLERS · FastAPI"; labeljust=l; color="#d7e6ee"; style="rounded,filled"; fillcolor="#f1f7fc";
+    rotas [label="/api/auth · /api/alunos\n/api/empresas · /api/vantagens\n/api/distribuicoes · /api/resgates\n/api/extrato · /api/cupons", fillcolor="#e5f2fa"];
+    guard [label="Sessões HTTPOnly\nCSRF + RBAC", fillcolor="#fff4df"];
+  }
+  subgraph cluster_domain {label="MODEL · Serviços de domínio"; labeljust=l; color="#cce4d9"; style="rounded,filled"; fillcolor="#effaf4";
+    cadastro [label="Cadastro e edição\nAluno / Empresa"];
+    financeira [label="Crédito semestral\nDistribuição atômica\nResgate + Cupom", fillcolor="#d6f0e3"];
+    outbox [label="Notificações em fila\n(retry separado)"];
+  }
+  subgraph cluster_store {label="PERSISTÊNCIA · Repositórios / ORM"; labeljust=l; color="#eadbb6"; style="rounded,filled"; fillcolor="#fffaf0";
+    orm [label="SQLAlchemy · Session\nCommit / Rollback / Constraints", fillcolor="#fff0d0"];
+    db [shape=cylinder, label="SQLite\n12 tabelas", fillcolor="#ffe6ab"];
+  }
+  subgraph cluster_external {label="INTEGRAÇÕES"; labeljust=l; color="#d5d7ed"; style="rounded,filled"; fillcolor="#f7f6fd";
+    job [label="Agendador externo\npython -m scripts.creditar_semestre"];
+    mail [label="Processador de outbox\nSMTP opcional", fillcolor="#f1eefc"];
+  }
+  navegador -> rotas; rotas -> guard; guard -> cadastro; guard -> financeira;
+  cadastro -> orm; financeira -> orm; financeira -> outbox;
+  outbox -> orm; orm -> db; job -> financeira; mail -> db [label="lê pendências", fontsize=9];
+}

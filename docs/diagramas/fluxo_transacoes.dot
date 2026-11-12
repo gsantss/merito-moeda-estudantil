@@ -1,0 +1,17 @@
+digraph Flow {
+ graph [rankdir=TB, bgcolor=white, pad=.3, nodesep=.28, ranksep=.3, fontname="DejaVu Sans", label="Transações financeiras e envio confiável · LAB03S03", labelloc=t, fontsize=18, fontcolor="#12344d"];
+ node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=11, fillcolor="#e9f5f3", color="#6da69e", margin=".22,.12"];
+ edge [color="#598d89", arrowsize=.7];
+ Start [label="Professor distribui / aluno resgata", fillcolor="#dcecff"];
+ Auth [label="Sessão autenticada + CSRF + perfil"];
+ Valid [label="Regras de domínio\nsaldo, vínculo, vantagem, motivo"];
+ Cond [shape=diamond, label="Saldo suficiente?", fillcolor="#fff1cb"];
+ Reject [label="HTTP 409\nSem alteração no banco", fillcolor="#ffebe9"];
+ Debit [label="UPDATE carteira SET saldo = saldo − valor\nWHERE saldo >= valor"];
+ Credit [label="Distribuição: creditar aluno\nResgate: gerar resgate + cupom"];
+ Rows [label="Persistir transação + notificações PENDENTES"];
+ Commit [label="COMMIT\nOperação atômica", fillcolor="#cff1df"];
+ Dispatch [label="Processo independente envia por SMTP\nou mantém pendente para nova tentativa", fillcolor="#edeaff"];
+ Start -> Auth -> Valid -> Cond;
+ Cond -> Reject [label="Não"];Cond -> Debit [label="Sim"];Debit -> Credit -> Rows -> Commit -> Dispatch;
+}

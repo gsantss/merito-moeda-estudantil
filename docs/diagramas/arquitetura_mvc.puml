@@ -1,0 +1,47 @@
+@startuml
+!theme plain
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam backgroundColor #FFFFFF
+skinparam rectangle { BorderColor #4C7A83 FontColor #12344D }
+title LAB03S02 — Arquitetura MVC e persistência
+actor "Estudante / Empresa / Professor" as Ator
+package "VIEW / FRONT-END" #EEF6F9 {
+  [Templates Jinja2] as Templates
+  [JavaScript fetch/JSON] as JS
+  [CSS responsivo] as CSS
+}
+package "CONTROLLER / FastAPI" #E8F4F7 {
+  [Rotas / páginas] as Views
+  [Autenticação / sessão] as Auth
+  [Controllers /api/alunos] as Alunos
+  [Controllers /api/empresas] as Empresas
+  [Consultas /api/instituicoes] as Consultas
+}
+package "MODEL / DOMÍNIO" #EAF6F1 {
+  [Services alunos/empresas] as Services
+  [Repositórios ORM] as Repos
+  [Modelos SQLAlchemy] as Models
+  [Validação Pydantic] as Schemas
+}
+package "INFRAESTRUTURA" #FFF6E8 {
+  database "SQLite (arquivo local)" as DB
+  [Sessões assinadas + PBKDF2] as Seguranca
+}
+Ator --> Templates
+Templates --> JS
+JS --> Alunos : HTTP JSON
+JS --> Empresas : HTTP JSON
+JS --> Auth : Login/logout
+JS --> Consultas : Dropdown
+Alunos --> Schemas
+Empresas --> Schemas
+Alunos --> Services
+Empresas --> Services
+Services --> Repos
+Repos --> Models
+Models --> DB
+Auth --> Seguranca
+Views --> Templates
+@enduml
