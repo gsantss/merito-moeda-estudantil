@@ -1,9 +1,10 @@
 """Modelo relacional da Sprint 02 (prepara entidades futuras sem implementar os seus fluxos)."""
 from datetime import datetime, timezone
+import secrets
 from uuid import uuid4
 from sqlalchemy import (
     String, Integer, DateTime, ForeignKey, UniqueConstraint, CheckConstraint,
-    Text, Boolean, Enum as SQLEnum
+    Text, Boolean
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
@@ -99,6 +100,22 @@ class TransacaoMoedas(Base):
         CheckConstraint("tipo IN ('credito_semestral','distribuicao','resgate')", name='ck_transacoes_tipo'),
     )
 
+    def direcao_para(self, carteira_id: str) -> str:
+        """Indica se a movimentação representa entrada ou saída para a carteira informada."""
+        return 'saida' if self.origem_carteira_id == carteira_id else 'entrada'
+
+    def para_extrato(self, carteira_id: str) -> dict:
+        """Formata a transação na visão de extrato para uma carteira específica."""
+        return {
+            'id': self.id,
+            'tipo': self.tipo,
+            'quantidade': self.quantidade,
+            'direcao': self.direcao_para(carteira_id),
+            'motivo': self.motivo,
+            'semestre': self.semestre,
+            'data_hora': self.data_hora.isoformat(),
+        }
+
 
 class CreditoSemestral(Base):
     __tablename__ = 'creditos_semestrais'
@@ -134,11 +151,22 @@ class Resgate(Base):
 
 class Cupom(Base):
     __tablename__ = 'cupons'
+    PREFIXO_CODIGO = 'MER-'
+
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=novo_id)
     resgate_id: Mapped[str] = mapped_column(ForeignKey('resgates.id', ondelete='RESTRICT'), unique=True, nullable=False)
     codigo: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     emitido_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=agora)
     utilizado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    @classmethod
+    def criar_para_resgate(cls, resgate_id: str) -> 'Cupom':
+        """Fábrica do cupom com código aleatório único (índice único no banco garante unicidade)."""
+        return cls(resgate_id=resgate_id, codigo=cls.PREFIXO_CODIGO + secrets.token_hex(8).upper())
+
+    @property
+    def foi_utilizado(self) -> bool:
+        return bool(self.utilizado_em)
 
 
 class Notificacao(Base):

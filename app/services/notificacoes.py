@@ -81,6 +81,56 @@ class EnviadorSmtp:
             smtp.send_message(msg)
 
 
+def enfileirar_recebimento_moedas(
+    db: Session,
+    *,
+    email_aluno: str,
+    nome_professor: str,
+    quantidade: int,
+    motivo: str,
+    transacao_id: str,
+) -> Notificacao:
+    """Cria e adiciona à sessão (sem commitar) a notificação de recebimento de moedas."""
+    notificacao = Notificacao(
+        destinatario=email_aluno,
+        assunto='Você recebeu moedas no Mérito+',
+        corpo=f'Você recebeu {quantidade} moedas de {nome_professor}. Motivo: {motivo}',
+        transacao_id=transacao_id,
+    )
+    db.add(notificacao)
+    return notificacao
+
+
+def enfileirar_resgate_cupom(
+    db: Session,
+    *,
+    email_aluno: str,
+    email_empresa: str,
+    titulo_vantagem: str,
+    custo: int,
+    codigo_cupom: str,
+    transacao_id: str,
+    cupom_id: str,
+) -> list[Notificacao]:
+    """Cria e adiciona à sessão (sem commitar) as notificações de cupom para aluno e parceiro."""
+    assunto = f'Cupom de resgate Mérito+: {titulo_vantagem}'
+    criadas: list[Notificacao] = []
+    for destino, descricao in ((email_aluno, 'Aluno'), (email_empresa, 'Empresa parceira')):
+        notificacao = Notificacao(
+            destinatario=destino,
+            assunto=assunto,
+            corpo=(
+                f'{descricao}: código de conferência {codigo_cupom}. '
+                f'Vantagem: {titulo_vantagem}. Custo: {custo} moedas.'
+            ),
+            transacao_id=transacao_id,
+            cupom_id=cupom_id,
+        )
+        db.add(notificacao)
+        criadas.append(notificacao)
+    return criadas
+
+
 def processar_pendentes(db: Session, enviador: EnviadorEmail, limite: int = 100) -> dict:
     """Tenta enviar as notificações pendentes ou com falha (até MAX_TENTATIVAS por mensagem)."""
     pendentes = db.scalars(
