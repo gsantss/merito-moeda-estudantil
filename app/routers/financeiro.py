@@ -44,7 +44,8 @@ def excluir_vantagem(vantagem_id: str, request: Request, db: Session = Depends(g
 @router.get('/extrato')
 def extrato(request: Request, db: Session = Depends(get_db)):
     u = usuario_atual(request, db)
-    if u.perfil not in ('aluno', 'professor'): raise HTTPException(403, 'Perfil sem carteira.')
+    if not u.possui_carteira():
+        raise HTTPException(403, 'Perfil sem carteira.')
     return financeiro.extrato(db, u.id)
 
 @router.post('/distribuicoes', status_code=201)

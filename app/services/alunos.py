@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from app.models import Aluno, Usuario, Carteira, Vantagem, Resgate
+from app.models import Aluno, Usuario, Carteira
 from app.schemas import AlunoCriar, AlunoAtualizar
 from app.security import hash_senha
 from app.repositories import alunos as repo
@@ -17,6 +17,32 @@ def apresentar(a: Aluno, *, privado: bool = True):
     if privado:
         retorno.update(email=a.email, cpf=a.cpf, rg=a.rg, endereco=a.endereco, login=a.usuario.login)
     return retorno
+
+
+def obter_ou_404(db: Session, aluno_id: str) -> Aluno:
+    aluno = repo.por_id(db, aluno_id)
+    if not aluno:
+        raise HTTPException(404, 'Aluno não encontrado.')
+    return aluno
+
+
+def listar_para(db: Session, usuario: Usuario) -> list[dict]:
+    """Lista alunos visíveis conforme o perfil autenticado."""
+    if usuario.perfil == 'professor':
+        return [apresentar(a, privado=False) for a in repo.por_instituicao(db, usuario.professor.instituicao_id)]
+    if usuario.perfil == 'aluno':
+        return [apresentar(usuario.aluno)]
+    raise HTTPException(403, 'Lista de alunos restrita à instituição do professor.')
+
+
+def detalhar_para(db: Session, usuario: Usuario, aluno_id: str) -> dict:
+    """Retorna os dados do aluno respeitando visibilidade privada e vínculo institucional."""
+    aluno = obter_ou_404(db, aluno_id)
+    if usuario.id == aluno.id and usuario.perfil == 'aluno':
+        return apresentar(aluno)
+    if usuario.perfil == 'professor' and usuario.professor.instituicao_id == aluno.instituicao_id:
+        return apresentar(aluno, privado=False)
+    raise HTTPException(403, 'Você não tem permissão para ver este cadastro.')
 
 
 def criar(db: Session, payload: AlunoCriar):
@@ -62,17 +88,10 @@ def atualizar(db: Session, aluno: Aluno, payload: AlunoAtualizar):
 
 def excluir(db: Session, aluno: Aluno):
     # Conservação de registros financeiros: contas com movimentação não são apagadas.
-    from sqlalchemy import select, or_
-    from app.models import TransacaoMoedas
     carteira = aluno.usuario.carteira
-    if carteira:
-        transacao = db.scalar(select(TransacaoMoedas.id).where(or_(
-            TransacaoMoedas.origem_carteira_id == carteira.id,
-            TransacaoMoedas.destino_carteira_id == carteira.id)).limit(1))
-        if carteira.saldo != 0 or transacao:
-            raise HTTPException(409, 'Cadastro com saldo ou movimentações não pode ser excluído. Solicite desativação administrativa.')
-    existe_resgate = db.query(Resgate.id).filter(Resgate.aluno_id == aluno.id).first()
-    if existe_resgate:
+    if carteira and (carteira.saldo != 0 or repo.possui_movimentacoes(db, carteira.id)):
+        raise HTTPException(409, 'Cadastro com saldo ou movimentações não pode ser excluído. Solicite desativação administrativa.')
+    if repo.possui_resgates(db, aluno.id):
         raise HTTPException(409, 'Cadastro com resgates não pode ser excluído.')
     try:
         if carteira:
@@ -83,3 +102,9 @@ def excluir(db: Session, aluno: Aluno):
     except IntegrityError as e:
         db.rollback()
         raise HTTPException(409, 'O cadastro possui vínculos e não pode ser excluído.') from e
+
+
+def desativar(db: Session, usuario: Usuario) -> None:
+    """Desativa o acesso do aluno preservando seu histórico financeiro."""
+    usuario.ativo = False
+    db.commit()

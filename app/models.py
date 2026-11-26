@@ -39,6 +39,16 @@ class Usuario(Base):
     carteira: Mapped['Carteira | None'] = relationship(back_populates='usuario', uselist=False)
     __table_args__ = (CheckConstraint("perfil IN ('aluno','professor','empresa')", name='ck_usuarios_perfil'),)
 
+    @property
+    def nome_exibicao(self) -> str:
+        """Retorna o nome do perfil associado ao usuário ou o login como fallback."""
+        perfil = self.aluno or self.professor or self.empresa
+        return perfil.nome if perfil else self.login
+
+    def possui_carteira(self) -> bool:
+        """Apenas alunos e professores possuem carteira de moedas no sistema."""
+        return self.perfil in ('aluno', 'professor')
+
 
 class Aluno(Base):
     __tablename__ = 'alunos'

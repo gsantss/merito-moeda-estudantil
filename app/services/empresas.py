@@ -1,11 +1,18 @@
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from app.models import EmpresaParceira, Usuario, Vantagem
+from app.models import EmpresaParceira, Usuario
 from app.schemas import EmpresaCriar, EmpresaAtualizar
 from app.security import hash_senha
-from app.repositories import empresas as repo
+from app.repositories import empresas as repo, vantagens as vantagens_repo
 from app.services.contas import checar_login, conflito
+
+
+def obter_ou_404(db: Session, empresa_id: str) -> EmpresaParceira:
+    empresa = repo.por_id(db, empresa_id)
+    if not empresa:
+        raise HTTPException(404, 'Empresa não encontrada.')
+    return empresa
 
 
 def apresentar(e: EmpresaParceira, *, privado: bool = True):
@@ -59,7 +66,7 @@ def atualizar(db: Session, empresa: EmpresaParceira, payload: EmpresaAtualizar):
 
 
 def excluir(db: Session, empresa: EmpresaParceira):
-    if db.query(Vantagem.id).filter(Vantagem.empresa_id == empresa.id).first():
+    if vantagens_repo.existe_por_empresa(db, empresa.id):
         raise HTTPException(409, 'Empresa com vantagens cadastradas não pode ser excluída.')
     try:
         db.delete(empresa)
@@ -68,3 +75,10 @@ def excluir(db: Session, empresa: EmpresaParceira):
     except IntegrityError as e:
         db.rollback()
         raise HTTPException(409, 'Empresa possui vínculos e não pode ser excluída.') from e
+
+
+def desativar(db: Session, usuario: Usuario) -> None:
+    """Desativa a conta da empresa e todas as suas vantagens na mesma transação."""
+    usuario.ativo = False
+    vantagens_repo.desativar_por_empresa(db, usuario.id)
+    db.commit()
