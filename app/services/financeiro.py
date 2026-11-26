@@ -5,13 +5,13 @@ no caminho crítico da operação. Débitos são UPDATEs condicionais (saldo >= 
 com rollback de todos os lançamentos em caso de erro.
 """
 import re
-import secrets
 from sqlalchemy import select, update, or_
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.models import (Aluno, Carteira, CreditoSemestral, Cupom, EmpresaParceira,
-                        Notificacao, Professor, Resgate, TransacaoMoedas, Vantagem)
+                        Professor, Resgate, TransacaoMoedas, Vantagem, agora)
+from app.services import notificacoes
 
 
 def carteira_usuario(db: Session, usuario_id: str) -> Carteira:
@@ -39,11 +39,7 @@ def extrato(db: Session, usuario_id: str):
         TransacaoMoedas.origem_carteira_id == carteira.id,
         TransacaoMoedas.destino_carteira_id == carteira.id,
     )).order_by(TransacaoMoedas.data_hora.desc(), TransacaoMoedas.id.desc())).all()
-    return {'saldo': carteira.saldo, 'movimentacoes': [
-        {'id': t.id, 'tipo': t.tipo, 'quantidade': t.quantidade,
-         'direcao': 'saida' if t.origem_carteira_id == carteira.id else 'entrada',
-         'motivo': t.motivo, 'semestre': t.semestre, 'data_hora': t.data_hora.isoformat()}
-        for t in registros]}
+    return {'saldo': carteira.saldo, 'movimentacoes': [t.para_extrato(carteira.id) for t in registros]}
 
 
 def creditos_semestre(db: Session, semestre: str):
@@ -96,11 +92,17 @@ def distribuir(db: Session, professor_id: str, aluno_id: str, quantidade: int, m
                             origem_carteira_id=origem.id, destino_carteira_id=destino.id, motivo=motivo)
         db.add(t)
         db.flush()
-        db.add(Notificacao(destinatario=aluno.email, assunto='Você recebeu moedas no Mérito+',
-                           corpo=f'Você recebeu {quantidade} moedas de {professor.nome}. Motivo: {motivo}',
-                           transacao_id=t.id))
+        notificacoes.enfileirar_recebimento_moedas(
+            db,
+            email_aluno=aluno.email,
+            nome_professor=professor.nome,
+            quantidade=quantidade,
+            motivo=motivo,
+            transacao_id=t.id,
+        )
         db.commit()
-        return {'transacao_id': t.id, 'quantidade': quantidade, 'saldo_atual': extrato(db, professor_id)['saldo']}
+        db.refresh(origem)
+        return {'transacao_id': t.id, 'quantidade': quantidade, 'saldo_atual': origem.saldo}
     except Exception:
         db.rollback()
         raise
@@ -123,19 +125,23 @@ def resgatar(db: Session, aluno_id: str, vantagem_id: str):
                     transacao_id=t.id, custo_aplicado=v.custo)
         db.add(r)
         db.flush()
-        # token randômico; índice único no banco protege a unicidade.
-        cupom = Cupom(resgate_id=r.id, codigo='MER-' + secrets.token_hex(8).upper())
+        cupom = Cupom.criar_para_resgate(r.id)
         db.add(cupom)
         db.flush()
-        assunto = f'Cupom de resgate Mérito+: {v.titulo}'
-        for destino, descricao in ((aluno.email, 'Aluno'), (empresa.email_contato, 'Empresa parceira')):
-            db.add(Notificacao(destinatario=destino, assunto=assunto,
-                               corpo=f'{descricao}: código de conferência {cupom.codigo}. '
-                                     f'Vantagem: {v.titulo}. Custo: {v.custo} moedas.',
-                               transacao_id=t.id, cupom_id=cupom.id))
+        notificacoes.enfileirar_resgate_cupom(
+            db,
+            email_aluno=aluno.email,
+            email_empresa=empresa.email_contato,
+            titulo_vantagem=v.titulo,
+            custo=v.custo,
+            codigo_cupom=cupom.codigo,
+            transacao_id=t.id,
+            cupom_id=cupom.id,
+        )
         db.commit()
+        db.refresh(c)
         return {'resgate_id': r.id, 'cupom': cupom.codigo,
-                'vantagem': v.titulo, 'custo': v.custo, 'saldo_atual': extrato(db, aluno_id)['saldo'],
+                'vantagem': v.titulo, 'custo': v.custo, 'saldo_atual': c.saldo,
                 'notificacoes': 'enfileiradas'}
     except Exception:
         db.rollback()
@@ -159,7 +165,6 @@ def validar_cupom(db: Session, empresa_id: str, codigo: str, consumir: bool = Fa
         raise HTTPException(404, 'Cupom não encontrado para sua empresa.')
     cupom, resgate, v = item
     if consumir:
-        from app.models import agora
         status = db.execute(update(Cupom).where(Cupom.id == cupom.id, Cupom.utilizado_em.is_(None))
                             .values(utilizado_em=agora()))
         if status.rowcount != 1:
@@ -167,4 +172,4 @@ def validar_cupom(db: Session, empresa_id: str, codigo: str, consumir: bool = Fa
         db.commit()
         db.refresh(cupom)
     return {'codigo': cupom.codigo, 'vantagem': v.titulo, 'resgate_id': resgate.id,
-            'utilizado': bool(cupom.utilizado_em)}
+            'utilizado': cupom.foi_utilizado}
